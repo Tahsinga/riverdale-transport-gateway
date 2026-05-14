@@ -1,0 +1,19 @@
+from django.urls import path
+from . import views
+
+app_name = 'config'
+
+urlpatterns = [
+    path('', views.dashboard, name='dashboard'),
+    path('api/rfid-scan/', views.rfid_scan, name='rfid_scan'),
+    path('api/last-scan/', views.last_scan, name='last_scan'),
+    path('api/dashboard-data/', views.api_dashboard_data, name='dashboard_data'),
+    path('register/', views.student_register, name='student_register'),
+    path('api/register/', views.student_register_ajax, name='student_register_ajax'),
+    path('api/student-update/', views.student_update_ajax, name='student_update_ajax'),
+    path('api/student-delete/', views.student_delete_ajax, name='student_delete_ajax'),
+    path('topup/', views.topup, name='topup'),
+    path('students/', views.students_page, name='students'),
+    path('cost/', views.update_cost, name='update_cost'),
+    path('api/toggle-active/', views.toggle_active, name='toggle_active'),
+]

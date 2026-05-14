@@ -1,0 +1,38 @@
+:root{
+	--brand-red: #c8102e;
+	--brand-deep: #9b0c26;
+	--brand-gold: #d6a439;
+	--brand-dark: #071027;
+	--brand-white: #ffffff;
+	--muted: #6b7280;
+}
+
+body{font-family:'Roboto',sans-serif;background:#f6f8fb;color:var(--brand-dark)}
+
+/* Sidebar defaults adjusted to brand */
+#sidebar{width:250px;background:var(--brand-dark);}
+#sidebar .nav-link{opacity:0.95;color:var(--brand-white)}
+#sidebar .nav-link:hover{opacity:1}
+
+.card-title{font-weight:500}
+
+/* Top red strip and header styles (site-wide brand header) */
+.site-top-strip{background:var(--brand-red);color:var(--brand-white);font-size:13px;padding:6px 12px;text-align:center}
+.site-header{background:var(--brand-white);border-bottom:1px solid rgba(0,0,0,0.04);padding:14px 12px}
+.site-logo{display:flex;align-items:center;gap:12px;font-weight:700;color:var(--brand-deep);font-size:20px}
+.site-logo .mark{width:44px;height:44px;border-radius:6px;background:var(--brand-gold);display:flex;align-items:center;justify-content:center;color:var(--brand-deep);font-weight:800}
+
+/* Navbar/links in header */
+.site-nav a{color:var(--muted);margin-left:18px;text-decoration:none}
+.site-nav a:hover{color:var(--brand-deep)}
+
+/* Buttons */
+.btn-primary{background:var(--brand-red);border-color:var(--brand-deep);color:var(--brand-white)}
+.btn-primary:hover{background:var(--brand-deep)}
+
+/* Small helpers to ensure good contrast */
+.text-brand { color: var(--brand-deep); }
+.bg-brand { background: var(--brand-red); color: var(--brand-white); }
+
+/* Make dashboard-specific logo/icon consistent */
+.logo-icon { background: var(--brand-gold) !important; color: var(--brand-deep) !important; }

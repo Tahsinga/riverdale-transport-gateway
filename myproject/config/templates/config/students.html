@@ -1,0 +1,163 @@
+{% extends 'config/base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3>Students</h3>
+  <div>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStudentModal"><i class="fas fa-user-plus"></i> Add Student</button>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body p-0">
+    <table class="table mb-0">
+      <thead class="table-light">
+        <tr><th>Name</th><th>RFID UID</th><th>Balance</th><th>Status</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for s in students_list %}
+        <tr>
+          <td>{{ s.name }}</td>
+          <td><code>{{ s.rfidUid }}</code></td>
+          <td>${{ s.balance }}</td>
+          <td>
+            <button class="btn btn-sm btn-status-toggle {% if s.active %}btn-danger{% else %}btn-success{% endif %}"
+                    data-student-id="{{ s.id }}" data-active="{% if s.active %}1{% else %}0{% endif %}">
+              {% if s.active %}Deactivate{% else %}Activate{% endif %}
+            </button>
+          </td>
+          <td><button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#viewStudentModal{{ s.id }}">View</button></td>
+        </tr>
+
+        <!-- per-student modal -->
+        <div class="modal fade" id="viewStudentModal{{ s.id }}" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">{{ s.name }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <p><strong>RFID UID:</strong> <code>{{ s.rfidUid }}</code></p>
+                <p><strong>Balance:</strong> ${{ s.balance }}</p>
+                <p><strong>Status:</strong> <span id="modalStatus{{ s.id }}">{% if s.active %}Active{% else %}Inactive{% endif %}</span>
+                  <button class="btn btn-sm ms-2 btn-status-toggle-modal {% if s.active %}btn-danger{% else %}btn-success{% endif %}"
+                          data-student-id="{{ s.id }}" data-active="{% if s.active %}1{% else %}0{% endif %}">
+                    {% if s.active %}Deactivate{% else %}Activate{% endif %}
+                  </button>
+                </p>
+                <hr>
+                <form method="post" action="{% url 'config:topup' %}">
+                  {% csrf_token %}
+                  <input type="hidden" name="uid" value="{{ s.rfidUid }}">
+                  <div class="mb-2">
+                    <label class="form-label">Top-up amount</label>
+                    <input name="amount" class="form-control" placeholder="50" />
+                  </div>
+                  <button class="btn btn-success">Top Up</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Add Student Modal -->
+<div class="modal fade" id="addStudentModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form method="post" action="{% url 'config:student_register' %}">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title">Add Student</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-2">
+            <label class="form-label">Student name</label>
+            <input name="name" class="form-control" required>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">RFID UID</label>
+            <input name="uid" class="form-control" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-primary">Register</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // helper to read CSRF cookie
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  async function toggleActiveRequest(studentId) {
+    const payload = { id: studentId };
+    const res = await fetch('{% url "config:toggle_active" %}', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+      body: JSON.stringify(payload)
+    });
+    return res.json();
+  }
+
+  function setButtonState(btn, active) {
+    if (!btn) return;
+    btn.dataset.active = active ? '1' : '0';
+    if (active) {
+      btn.classList.remove('btn-success'); btn.classList.add('btn-danger'); btn.innerText = 'Deactivate';
+    } else {
+      btn.classList.remove('btn-danger'); btn.classList.add('btn-success'); btn.innerText = 'Activate';
+    }
+  }
+
+  document.addEventListener('click', async (ev) => {
+    const btn = ev.target.closest('.btn-status-toggle, .btn-status-toggle-modal');
+    if (!btn) return;
+    ev.preventDefault();
+    const sid = btn.dataset.studentId;
+    if (!sid) return;
+    btn.disabled = true;
+    try {
+      const data = await toggleActiveRequest(sid);
+      if (data && data.status === 'ok') {
+        const active = !!data.active;
+        // update any row button and modal button for this student
+        document.querySelectorAll(`[data-student-id='${sid}']`).forEach(el => setButtonState(el, active));
+        const modalStatus = document.getElementById('modalStatus' + sid);
+        if (modalStatus) modalStatus.innerText = active ? 'Active' : 'Inactive';
+      } else {
+        alert(data.message || 'Failed to toggle active state');
+      }
+    } catch (e) {
+      alert('Network error');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+</script>
+{% endblock %}

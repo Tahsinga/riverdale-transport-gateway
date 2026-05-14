@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>RIVERDALE ACADEMY</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root{
+      --brand-red: #c8102e;
+      --brand-deep: #9b0c26;
+      --brand-gold: #d6a439;
+      --brand-dark: #071027;
+      --brand-white: #ffffff;
+    }
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: #f5f6fa;
+      color: #111;
+    }
+
+    /* ── Dashboard Flex Layout ── */
+    .dash {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ========= SIDEBAR (inspired by transit template) ========= */
+    .sidebar {
+      width: 260px;
+      flex-shrink: 0;
+      background: #fff;
+      border-right: 1px solid #eee;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 100;
+    }
+
+    .sidebar-logo {
+      padding: 24px 20px 20px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .logo-mark { display: flex; align-items: center; gap: 12px; }
+
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: var(--brand-gold);
+      border-radius: 5px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .logo-text { font-size: 18px; font-weight: 700; color: #111; letter-spacing: -0.3px; }
+    .logo-sub  { font-size: 11px; color: #999; margin-top: 2px; }
+
+    .sidebar-section { padding: 20px 16px 8px; }
+
+    .sidebar-label {
+      font-size: 10px; font-weight: 600;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: #aaa; padding: 0 8px; margin-bottom: 12px;
+    }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      color: #555;
+      text-decoration: none;
+      margin-bottom: 4px;
+      transition: all 0.15s;
+    }
+
+    .nav-item:hover { background: #f5f5f5; color: #111; }
+    .nav-item.active { background: rgba(200,16,46,0.06); color: var(--brand-deep); font-weight: 500; }
+
+    .nav-badge {
+      margin-left: auto;
+      background: var(--brand-red); color: var(--brand-white);
+      font-size: 10px; font-weight: 600;
+      padding: 2px 8px; border-radius: 5px;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 16px 12px 24px;
+      border-top: 1px solid #eee;
+    }
+
+    .user-row { display: flex; align-items: center; gap: 12px; padding: 6px 10px; }
+
+    .avatar {
+      width: 34px; height: 34px;
+      background: rgba(214,164,57,0.16); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 600; color: var(--brand-deep);
+    }
+
+    .user-name { font-size: 14px; font-weight: 500; color: #111; }
+    .user-role { font-size: 11px; color: #aaa; }
+
+    /* ========= MAIN CONTENT ========= */
+    .main { flex: 1; margin-left: 260px; display: flex; flex-direction: column; }
+
+    .topbar {
+      background: #fff;
+      border-bottom: 1px solid #eee;
+      padding: 16px 32px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 40;
+    }
+
+    .topbar-title { font-size: 20px; font-weight: 600; color: #111; }
+    .topbar-sub   { font-size: 13px; color: #aaa; margin-top: 2px; }
+    .topbar-actions { display: flex; gap: 12px; }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 16px; border-radius: 5px;
+      font-size: 13px; font-family: 'Roboto', sans-serif; font-weight: 500;
+      cursor: pointer; border: 1px solid #ddd;
+      background: #fff; color: #333;
+      transition: all 0.2s;
+    }
+
+    .btn:hover { background: #f5f5f5; transform: translateY(-1px); }
+    .btn-primary { background: var(--brand-red); color: var(--brand-white); border-color: var(--brand-deep); }
+    .btn-primary:hover { background: var(--brand-deep); }
+
+    .content { padding: 28px 32px; }
+
+    /* Stats Grid */
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-bottom: 28px; }
+
+    .stat-card {
+      background: #fff; border: 1px solid #eee;
+      border-radius: 5px; padding: 18px 20px;
+      position: relative; overflow: hidden;
+      transition: box-shadow 0.2s;
+    }
+    .stat-card:hover { box-shadow: 0 8px 20px rgba(0,0,0,0.02), 0 2px 6px rgba(0,0,0,0.05); }
+
+    .stat-accent { position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+    .stat-label  { font-size: 12px; color: #888; font-weight: 500; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+    .stat-icon {
+      width: 28px; height: 28px; border-radius: 5px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .stat-value {
+      font-size: 32px; font-weight: 600; color: #111;
+      letter-spacing: -1px; font-family: 'DM Mono', monospace; line-height: 1.1;
+      margin-bottom: 6px;
+    }
+    .stat-change { font-size: 11px; display: flex; align-items: center; gap: 4px; }
+    .up { color: var(--brand-red); }
+    .neutral { color: #aaa; }
+
+    /* two column layout */
+    .two-cols {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      margin-bottom: 28px;
+    }
+    .col {
+      flex: 1;
+      min-width: 280px;
+    }
+    .panel {
+      background: #fff;
+      border-radius: 5px;
+      border: 1px solid #eee;
+      overflow: hidden;
+      height: 100%;
+    }
+    .panel-header {
+      padding: 16px 20px 12px;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .panel-title {
+      font-weight: 600;
+      font-size: 15px;
+    }
+    .panel-meta {
+      font-size: 11px;
+      color: #aaa;
+    }
+    .panel-body {
+      padding: 0px 0px 8px 0px;
+    }
+
+    /* compact daily overview (reduced height) */
+    .daily-overview {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      align-content: flex-start;
+      padding: 6px 10px;
+    }
+
+    .overview-item {
+      min-width: 110px;
+      background: #fff;
+      border-radius: 8px;
+      padding: 6px 8px;
+      border: 1px solid #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      box-shadow: 0 1px 3px rgba(16,24,40,0.02);
+      line-height: 1;
+    }
+
+    .overview-item .label { font-size: 10px; color: #666; }
+    .overview-item .value { font-size: 13px; font-weight: 700; color: #111; }
+    .overview-item .meta { font-size: 9px; color: #999; }
+
+    /* extra-tight compact mode for the panel wrapper */
+    .panel.compact-overview { padding-bottom: 6px; }
+    .panel.compact-overview .panel-header { padding: 10px 12px; }
+    .panel.compact-overview .daily-overview { padding: 6px 10px; }
+
+    /* tables & lists */
+    .recent-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .recent-table th, .recent-table td {
+      text-align: left;
+      padding: 12px 16px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .recent-table th {
+      font-weight: 500;
+      color: #888;
+      font-size: 11px;
+      letter-spacing: 0.3px;
+    }
+    .amount-negative { color: #e25c5c; font-weight: 600; }
+    .amount-positive { color: var(--brand-red); font-weight: 600; }
+
+    .student-badge {
+      background: #f0f2f5;
+      border-radius: 30px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 500;
+      display: inline-block;
+    }
+
+    /* live RFID card */
+    .live-rfid {
+      background: #fff;
+      border-radius: 5px;
+      margin-bottom: 28px;
+      border: 1px solid #eee;
+      padding: 16px 24px 24px;
+    }
+    .live-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .rfid-reader {
+      background: #fff5f7;
+      border-radius: 5px;
+      padding: 16px 20px;
+      font-size: 13px;
+      margin-top: 8px;
+      color: #1e2a3a;
+    }
+    .mock-input {
+      display: flex;
+      gap: 12px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+    .mock-input input {
+      flex: 2;
+      padding: 12px 16px;
+      border-radius: 60px;
+      border: 1px solid #ddd;
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      background: #fff;
+    }
+    .esp-status {
+      background: #f5f7fb;
+      border-radius: 5px;
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .led-green {
+      width: 10px;
+      height: 10px;
+      background-color: #10b981;
+      border-radius: 50%;
+      box-shadow: 0 0 0 2px #dcfce7;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0% { opacity: 0.6; transform: scale(0.9);}
+      100% { opacity: 1; transform: scale(1.2);}
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 30px;
+      color: #aaa;
+      font-size: 11px;
+    }
+    @media (max-width: 800px) {
+      .sidebar { width: 70px; }
+      .sidebar .logo-text, .sidebar .logo-sub, .sidebar .sidebar-label, .sidebar .nav-item span:not(.nav-badge) { display: none; }
+      .sidebar .nav-item { justify-content: center; }
+      .main { margin-left: 70px; }
+      .stats-grid { grid-template-columns: repeat(2,1fr); }
+    }
+
+    /* Modal overlays (dashboard themed) */
+    .modal-overlay {
+      position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+      background: rgba(6,10,15,0.45); z-index: 2200; padding: 20px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-card {
+      background: #fff; border-radius: 5px; width: min(900px, 92%); min-height: 50vh; max-height: 92vh; overflow: auto;
+      box-shadow: 0 20px 60px rgba(2,6,23,0.35); border: 1px solid rgba(0,0,0,0.04);
+      font-family: 'Roboto', sans-serif;
+    }
+    .modal-header { padding: 14px 18px; border-bottom: 1px solid #f0f0f0; display:flex; align-items:center; justify-content:space-between; }
+    .modal-body { padding: 12px 18px; }
+    .modal-close { background: transparent; border: 0; font-size: 18px; cursor: pointer; color: #666; }
+    .form-control { width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid #e8e8e8; font-size: 13px; }
+    .form-label { font-size: 12px; color: #666; margin-bottom: 6px; display:block; }
+    .mb-2 { margin-bottom: 8px; }
+  </style>
+    <style>
+      /* Theme overrides (applied when body has .theme-... class) */
+      body.theme-riverdale .topbar { background: #c8102e !important; color: #fff !important; }
+      body.theme-riverdale .topbar .topbar-sub { color: rgba(255,255,255,0.9) !important; }
+      body.theme-riverdale .sidebar { background: #b10f26 !important; color: #fff !important; border-right-color: rgba(0,0,0,0.08) !important; }
+      body.theme-riverdale .logo-icon { background: #ffd700 !important; color: #b10f26 !important; }
+      body.theme-riverdale .logo-text { color: #fff !important; }
+      body.theme-riverdale .btn-primary { background: #8b0000 !important; border-color: #6e0000 !important; }
+      body.theme-riverdale .stat-accent { background: #8b0000 !important; }
+      body.theme-riverdale .nav-item.active { background: rgba(255,255,255,0.06) !important; color: #fff !important; }
+
+      body.theme-dark { background: #0b1220 !important; color: #d6e1ef !important; }
+      body.theme-dark .sidebar { background: #071027 !important; color: #cfe3ff !important; }
+      body.theme-dark .topbar { background: #071027 !important; color: #cfe3ff !important; }
+      body.theme-dark .logo-icon { background: #1f2937 !important; color: #cfe3ff !important; }
+      body.theme-dark .btn-primary { background: #2563eb !important; border-color: #1e40af !important; }
+
+      /* small selector style placed in topbar */
+      #themeSelect { padding:6px 8px; border-radius:6px; border:1px solid #ddd; background:#fff; }
+      body.theme-riverdale #themeSelect { background:#fff; color:#111; }
+      body.theme-dark #themeSelect { background:#0b1220; color:#d6e1ef; border-color:#233044; }
+    </style>
+</head>
+<body>
+<div class="dash">
+
+  <!-- SIDEBAR (modern transit style) -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">
+        <div class="logo-icon">
+          <i class="fas fa-id-card" style="color: white; font-size: 18px;"></i>
+        </div>
+        <div>
+          <div class="logo-text">RIVERDALE ACADEMY</div>
+          <div class="logo-sub">RFID Payment Hub</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Student Modal -->
+    <div id="modal-edit-student" class="modal-overlay" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-header">
+          <strong>Edit Student</strong>
+          <button class="modal-close" data-close>&times;</button>
+        </div>
+        <div class="modal-body">
+          <div id="editStudentMsg" style="margin-bottom:10px;color:#666;"></div>
+          <input type="hidden" id="editStudentId">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="mb-2"><label class="form-label">Full name</label><input id="editStudentName" class="form-control"></div>
+            <div class="mb-2"><label class="form-label">RFID UID</label><input id="editStudentUid" class="form-control"></div>
+            <div class="mb-2"><label class="form-label">Username</label><input id="editStudentUsername" class="form-control"></div>
+            <div class="mb-2"><label class="form-label">Email</label><input id="editStudentEmail" class="form-control"></div>
+            <div class="mb-2"><label class="form-label">Balance (USD)</label><input id="editStudentBalance" class="form-control" type="number" step="0.01"></div>
+            <div class="mb-2"><label class="form-label">Class / Grade</label><input id="editStudentGrade" class="form-control"></div>
+            <div class="mb-2"><label class="form-label">Roll / ID</label><input id="editStudentRoll" class="form-control"></div>
+            <div class="mb-2"><label class="form-label">Parent contact</label><input id="editStudentParent" class="form-control"></div>
+          </div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;"><button class="btn btn-secondary" data-close>Cancel</button><button class="btn btn-primary" id="editStudentSubmit">Save</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Overview</div>
+      <a class="nav-item active" href="#" id="navDashboard" data-modal="modal-none">
+        <i class="fas fa-tachometer-alt" style="width: 18px;"></i> <span>Dashboard</span>
+        <span class="nav-badge">Live</span>
+      </a>
+      <a class="nav-item" href="#" data-modal="modal-students">
+        <i class="fas fa-users"></i> <span>Students</span>
+      </a>
+      <a class="nav-item" href="#" data-modal="modal-payments">
+        <i class="fas fa-history"></i> <span>Payments</span>
+      </a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Finance</div>
+      <a class="nav-item" href="#" data-modal="modal-topup">
+        <i class="fas fa-wallet"></i> <span>Top Up</span>
+      </a>
+      <a class="nav-item" href="#" data-modal="modal-revenue">
+        <i class="fas fa-chart-line"></i> <span>Revenue</span>
+      </a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Admin</div>
+      <a class="nav-item" href="#" data-modal="modal-tags">
+        <i class="fas fa-id-card"></i> <span>RFID Tags</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <div class="topbar-title">RFID Payment Dashboard</div>
+        <div class="topbar-sub" id="currentDateTime"></div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn" id="resetDataBtn"><i class="fas fa-undo-alt"></i> Reset Demo</button>
+        <button class="btn btn-primary" id="bulkTopupMock"><i class="fas fa-plus-circle"></i> Bulk Top-up</button>
+        
+        <button class="btn" id="enableSoundBtn" title="Enable notification sounds">🔔 Enable Sounds</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- Live RFID card -->
+      <div class="live-rfid">
+        <div class="live-header">
+          <h3 style="font-weight: 600; font-size: 1.1rem;"><i class="fas fa-rss" style="color:var(--brand-red);"></i> ESP32 · LIVE RFID STREAM</h3>
+          <div class="esp-status">
+            <div class="led-green"></div>
+            <span><i class="fas fa-microchip"></i> Bridge: <strong>ONLINE</strong></span>
+          </div>
+        </div>
+        <div class="rfid-reader" id="rfidLiveMessage">
+          🟢 Waiting for RFID tap — present card or simulate below
+        </div>
+        <div style="font-size: 11px; margin-top: 12px; color:#888; display:flex; gap:8px; align-items:center;">
+          <div><i class="fas fa-info-circle"></i> Each RFID tap deducts <strong id="defaultAmountLabel">${{ cost_per_ride|floatformat:2 }}</strong> (meal/snack). ESP32 integration ready via WebSocket.</div>
+          <div>
+            <form method="post" action="{% url 'config:update_cost' %}" style="display:inline-flex; gap:6px; align-items:center;">
+              {% csrf_token %}
+              <input name="cost" type="number" step="0.01" min="0" class="form-control" style="width:120px; padding:6px 8px;" value="{{ cost_per_ride|floatformat:2 }}">
+              <button class="btn btn-primary" type="submit">Save</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="stats-grid" id="statsGrid"></div>
+
+      <!-- Two columns -->
+      <div class="two-cols">
+        <div class="col">
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title"><i class="fas fa-receipt"></i> Recent Payments</span>
+              <span class="panel-meta">RFID tap transactions</span>
+            </div>
+            <div class="panel-body" style="padding: 0; max-height: 420px; overflow-y: auto;">
+              <table class="recent-table" id="recentTransactionsTable">
+                <thead>
+                  <tr><th>Student</th><th>Item</th><th>Amount</th><th>Time</th></tr>
+                </thead>
+                <tbody id="transactionsBody"></tbody>
+              </table>
+              <div id="noTransactionsMsg" style="text-align:center; padding: 28px; color:#aaa;">No transactions yet</div>
+            </div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title"><i class="fas fa-id-card"></i> Student Balances & RFID</span>
+              <span class="panel-meta">Active cards</span>
+            </div>
+            <div class="panel-body" style="padding: 0; max-height: 420px; overflow-y: auto;">
+              <div style="padding:8px;"><input id="studentBalancesSearch" class="form-control" placeholder="Search students by name"></div>
+              <table class="recent-table" style="width:100%">
+                <thead><tr><th>Student</th><th>RFID UID</th><th>Balance</th><th>Status</th></tr></thead>
+                <tbody id="studentBalancesBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Modals (dashboard-themed) -->
+      <div id="modal-students" class="modal-overlay" aria-hidden="true">
+        <div class="modal-card">
+          <div class="modal-header">
+            <strong>Students</strong>
+            <button class="modal-close" data-close>&times;</button>
+          </div>
+          <div class="modal-body">
+            <div style="margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+              <div><small class="text-muted">Manage students and RFID tags</small></div>
+              <button class="btn btn-primary" id="openAddStudentBtn">Add Student</button>
+            </div>
+            <div style="margin-bottom:8px;"><input id="studentModalSearch" class="form-control" placeholder="Search students by name"></div>
+            <div style="overflow:auto; max-height:56vh;">
+              <table class="recent-table" style="width:100%">
+                <thead>
+                  <tr>
+                    <th>Full name</th>
+                    <th>RFID UID</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Balance</th>
+                    <th>Class / Grade</th>
+                    <th>Roll / ID</th>
+                    <th>Parent contact</th>
+                    <th>Status</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="modalStudentsBody"></tbody>
+              </table>
+            </div>
+            <div id="studentDetail" style="margin-top:12px;"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Add Student Modal (dashboard-themed, AJAX) -->
+      <div id="modal-add-student" class="modal-overlay" aria-hidden="true">
+        <div class="modal-card">
+            <div class="modal-header">
+              <strong>Add Student</strong>
+              <button class="modal-close" data-close>&times;</button>
+            </div>
+            <div class="modal-body">
+              <div id="addStudentMsg" style="margin-bottom:10px;color:#666;"></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div class="mb-2"><label class="form-label">Full name</label><input id="addStudentName" class="form-control" placeholder="e.g., John Doe"></div>
+                <div class="mb-2"><label class="form-label">RFID UID</label><input id="addStudentUid" class="form-control" placeholder="A1B2C3D4"></div>
+                <div class="mb-2"><label class="form-label">Username (optional)</label><input id="addStudentUsername" class="form-control" placeholder="schooluser01"></div>
+                <div class="mb-2"><label class="form-label">Email (optional)</label><input id="addStudentEmail" class="form-control" placeholder="parent@example.com"></div>
+                <div class="mb-2"><label class="form-label">Initial balance (USD)</label><input id="addStudentBalance" class="form-control" placeholder="0.00" type="number" step="0.01" min="0"></div>
+                <div class="mb-2"><label class="form-label">Class / Grade</label><input id="addStudentGrade" class="form-control" placeholder="Grade 5 / Class A"></div>
+                <div class="mb-2"><label class="form-label">Roll / ID number</label><input id="addStudentRoll" class="form-control" placeholder="12345"></div>
+                <div class="mb-2"><label class="form-label">Parent contact</label><input id="addStudentParent" class="form-control" placeholder="+1 555 123 4567"></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;margin-top:10px;">
+                <label style="display:flex;align-items:center;gap:8px;"><input type="checkbox" id="addStudentActive" checked> Active / Assign card</label>
+              </div>
+              <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;"><button class="btn btn-secondary" data-close>Cancel</button><button class="btn btn-primary" id="addStudentSubmit">Register Student</button></div>
+            </div>
+          </div>
+      </div>
+
+      <div id="modal-payments" class="modal-overlay" aria-hidden="true">
+        <div class="modal-card">
+          <div class="modal-header">
+            <strong>Recent Payments</strong>
+            <button class="modal-close" data-close>&times;</button>
+          </div>
+          <div class="modal-body">
+            <div style="overflow:auto; max-height:64vh;">
+              <table class="recent-table" style="width:100%">
+                <thead><tr><th>Student</th><th>Item</th><th>Amount</th><th>Time</th></tr></thead>
+                <tbody id="modalPaymentsBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="modal-topup" class="modal-overlay" aria-hidden="true">
+        <div class="modal-card">
+          <div class="modal-header">
+            <strong>Top Up Account</strong>
+            <button class="modal-close" data-close>&times;</button>
+          </div>
+          <div class="modal-body">
+            <form method="post" action="{% url 'config:topup' %}">
+              {% csrf_token %}
+              <div class="mb-2"><label class="form-label">RFID UID</label><input name="uid" class="form-control" placeholder="A1B2C3D4"></div>
+              <div class="mb-2"><label class="form-label">Amount</label><input name="amount" class="form-control" placeholder="50"></div>
+              <button class="btn btn-success">Top Up</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div id="modal-revenue" class="modal-overlay" aria-hidden="true">
+        <div class="modal-card">
+          <div class="modal-header">
+            <strong>Revenue</strong>
+            <button class="modal-close" data-close>&times;</button>
+          </div>
+          <div class="modal-body">
+            <div id="modalRevenueInner"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="modal-tags" class="modal-overlay" aria-hidden="true">
+        <div class="modal-card">
+          <div class="modal-header">
+            <strong>RFID Tags</strong>
+            <button class="modal-close" data-close>&times;</button>
+          </div>
+          <div class="modal-body">
+            <div id="modalTagsInner"></div>
+          </div>
+        </div>
+      </div>
+
+      
+      <footer>
+        <i class="fas fa-microchip"></i> ESP32 + RFID-RC522 | Real-time payments | Dashboard ready for production
+      </footer>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ---------- SCHOOL DATA MODEL (RFID & PAYMENT) ----------
+  // fetch students and transactions from server API so dashboard updates after runtime changes
+  let students = [];
+  let transactions = [];
+  // fetch server-side snapshot for dashboard
+  async function fetchDashboardData() {
+    try {
+      const res = await fetch('/api/dashboard-data/');
+      if (!res.ok) return;
+      const j = await res.json();
+      students = j.students || [];
+      transactions = j.transactions || [];
+      updateDashboard();
+    } catch (e) {
+      // ignore fetch errors
+    }
+  }
+
+  // handle edit-student AJAX submit
+  const editSubmit = document.getElementById('editStudentSubmit');
+  if (editSubmit) {
+    editSubmit.addEventListener('click', async () => {
+      const id = document.getElementById('editStudentId').value;
+      const name = document.getElementById('editStudentName').value.trim();
+      const uid = document.getElementById('editStudentUid').value.trim();
+      const username = document.getElementById('editStudentUsername').value.trim();
+      const email = document.getElementById('editStudentEmail').value.trim();
+      const balance = document.getElementById('editStudentBalance').value.trim();
+      const grade = document.getElementById('editStudentGrade').value.trim();
+      const roll = document.getElementById('editStudentRoll').value.trim();
+      const parent = document.getElementById('editStudentParent').value.trim();
+      const msg = document.getElementById('editStudentMsg');
+      msg.innerText = '';
+      if (!id) { msg.innerText = 'Missing student id'; return; }
+      const payload = { id, name, uid, username, email, balance, grade, roll, parent };
+      try {
+        const resp = await fetch('{% url "config:student_update_ajax" %}', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+          body: JSON.stringify(payload)
+        });
+        const data = await resp.json();
+        if (resp.ok && data.status === 'ok') {
+          // replace student in local array
+          const idx = students.findIndex(s => s.id === data.student.id);
+          if (idx >= 0) students[idx] = data.student; else students.unshift(data.student);
+          renderStudentsModal();
+          updateDashboard();
+          closeModal(document.getElementById('modal-edit-student'));
+        } else {
+          msg.innerText = data.message || 'Failed to update student.';
+        }
+      } catch (err) {
+        msg.innerText = 'Network error';
+      }
+    });
+  }
+  let paymentAmount = 25;
+
+  // helper: format timestamp
+  function getCurrentTimestamp() {
+    const now = new Date();
+    return now.toLocaleTimeString([], { hour: '2-digit', minute:'2-digit', second:'2-digit' }) + " " + now.toLocaleDateString();
+  }
+
+  // Poll server for last RFID scan and update live message
+  let lastSeenTimestamp = null;
+  async function pollLastScan() {
+    try {
+      const res = await fetch('/api/last-scan/');
+      if (!res.ok) return;
+      const j = await res.json();
+      const data = j.last_scan || {};
+      if (!data || !data.uid) return;
+      if (data.timestamp !== lastSeenTimestamp) {
+        lastSeenTimestamp = data.timestamp;
+        const msgEl = document.getElementById('rfidLiveMessage');
+        if (msgEl) msgEl.innerText = `✅ ${data.student || 'Unknown'} (${data.uid}) — ${data.status} · ${data.remaining ? 'Balance: $' + data.remaining : ''}`;
+        try {
+          if (data.status === 'ok') playSuccess(); else playWarning();
+        } catch(e) {}
+        // refresh latest students/transactions so UI shows new records
+        fetchDashboardData();
+      }
+    } catch (e) {
+      // ignore polling errors
+    }
+  }
+
+  // start polling every 1.5 seconds
+  setInterval(pollLastScan, 1500);
+
+  // read cookie (for CSRF token)
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  // --- Audio helpers (WebAudio-based tones, no external files) ---
+  let _audioCtx = null;
+  function _ensureAudio() {
+    if (!_audioCtx) {
+      try { _audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { _audioCtx = null; }
+    }
+    return _audioCtx;
+  }
+
+  function playTone(freq = 440, duration = 0.12, type = 'sine', gain = 0.18) {
+    const ctx = _ensureAudio();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') {
+      // try to resume on user gesture
+      ctx.resume().catch(() => {});
+    }
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.value = gain;
+    o.connect(g); g.connect(ctx.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
+    setTimeout(() => { try { o.stop(); } catch (e) {} }, duration * 1000 + 20);
+  }
+
+  function playSuccess() {
+    // pleasant descending two-tone (louder)
+    playTone(880, 0.08, 'sine', 0.22);
+    setTimeout(() => playTone(660, 0.12, 'sine', 0.18), 90);
+  }
+
+  function playWarning() {
+    // short loud buzz (insufficient funds / warnings)
+    playTone(220, 0.22, 'square', 0.35);
+  }
+
+  function playError() {
+    // two dissonant tones (louder)
+    playTone(330, 0.09, 'sawtooth', 0.28);
+    setTimeout(() => playTone(260, 0.12, 'sawtooth', 0.24), 90);
+  }
+
+  function updateDate() {
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const el = document.getElementById("currentDateTime");
+    if (el) el.innerHTML = `${dateStr} · ${timeStr}`;
+  }
+
+  // Modal helpers
+  function openModal(id) {
+    if (!id || id === 'modal-none') return;
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.add('open'); el.setAttribute('aria-hidden','false');
+    document.body.style.overflow = 'hidden';
+    // render dynamic content
+    if (id === 'modal-students') renderStudentsModal();
+    if (id === 'modal-payments') renderPaymentsModal();
+    if (id === 'modal-revenue') renderRevenueModal();
+    if (id === 'modal-tags') renderTagsModal();
+    if (id === 'modal-live') renderLiveModal();
+  }
+
+  function closeModal(el) {
+    if (!el) return;
+    el.classList.remove('open'); el.setAttribute('aria-hidden','true');
+    document.body.style.overflow = '';
+  }
+
+  // render functions for modals
+  function renderStudentsModal() {
+    const tbody = document.getElementById('modalStudentsBody');
+    if (!tbody) return;
+    const qEl = document.getElementById('studentModalSearch');
+    const q = qEl && qEl.value ? qEl.value.trim().toLowerCase() : '';
+    const filtered = q ? students.filter(s => s.name.toLowerCase().includes(q)) : students;
+    tbody.innerHTML = filtered.map((s) => {
+      return `
+      <tr>
+        <td><strong>${s.name}</strong></td>
+        <td><code>${s.rfidUid || ''}</code></td>
+        <td>${s.username || '—'}</td>
+        <td>${s.email || '—'}</td>
+        <td style="font-weight:600;">$${Number(s.balance||0).toFixed(2)}</td>
+        <td>${s.grade || '—'}</td>
+        <td>${s.roll || '—'}</td>
+        <td>${s.parent || '—'}</td>
+        <td>${s.active ? '<span style="color:var(--brand-red);">Active</span>' : 'Inactive'}</td>
+        <td style="text-align:right; width:96px; display:flex; gap:6px; justify-content:flex-end;">
+          <button class="btn" onclick="openEditStudent(${s.id})" title="Edit">✎</button>
+          <button class="btn" style="background:#f8d7da;color:#842029;border-color:transparent;" onclick="deleteStudentConfirm(${s.id}, '${s.name.replace("'","\'" )}')" title="Delete">🗑</button>
+        </td>
+      </tr>
+    `}).join('');
+  }
+
+  function deleteStudentConfirm(id, name) {
+    if (!confirm(`Delete student ${name}? This will remove their account and logs.`)) return;
+    deleteStudent(id);
+  }
+
+  async function deleteStudent(id) {
+    try {
+      const resp = await fetch('{% url "config:student_delete_ajax" %}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+        body: JSON.stringify({ id })
+      });
+      const data = await resp.json();
+      if (resp.ok && data.status === 'ok') {
+        // remove from local array and re-render
+        students = students.filter(s => s.id !== id);
+        renderStudentsModal();
+        updateDashboard();
+      } else {
+        alert(data.message || 'Failed to delete student');
+      }
+    } catch (err) {
+      alert('Network error while deleting');
+    }
+  }
+
+  // open edit modal and populate fields
+  function openEditStudent(studentId) {
+    const s = students.find(x => x.id === studentId);
+    if (!s) return;
+    // populate edit modal inputs
+    document.getElementById('editStudentId').value = s.id;
+    document.getElementById('editStudentName').value = s.name || '';
+    document.getElementById('editStudentUid').value = s.rfidUid || '';
+    document.getElementById('editStudentUsername').value = s.username || '';
+    document.getElementById('editStudentEmail').value = s.email || '';
+    document.getElementById('editStudentBalance').value = s.balance || '';
+    document.getElementById('editStudentGrade').value = s.grade || '';
+    document.getElementById('editStudentRoll').value = s.roll || '';
+    document.getElementById('editStudentParent').value = s.parent || '';
+    openModal('modal-edit-student');
+  }
+
+  function renderStudentBalances() {
+    const body = document.getElementById('studentBalancesBody');
+    if (!body) return;
+    const qEl = document.getElementById('studentBalancesSearch');
+    const q = qEl && qEl.value ? qEl.value.trim().toLowerCase() : '';
+    const list = q ? students.filter(s => s.name.toLowerCase().includes(q)) : students;
+    body.innerHTML = list.map(s => `
+      <tr>
+        <td><strong>${s.name}</strong></td>
+        <td style="font-family: monospace; font-size:11px;">${s.rfidUid || ''}</td>
+        <td style="font-weight:600;">$${s.balance}</td>
+        <td>${s.active ? '<span style="color:var(--brand-red);">✓ active</span>' : 'inactive'}</td>
+      </tr>
+    `).join('');
+  }
+
+  function showStudentDetail(index) {
+    const s = students[index];
+    const el = document.getElementById('studentDetail');
+    if (!s || !el) return;
+    const username = s.username || s.user || '—';
+    const email = s.email || s.email || '—';
+    const grade = s.grade || '—';
+    const roll = s.roll || '—';
+    const parent = s.parent || '—';
+    el.innerHTML = `
+      <div class="panel" style="padding:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><strong>${s.name}</strong><small>${s.rfidUid || ''}</small></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div><div class="label">Balance</div><div class="value" style="font-weight:700;">$${s.balance}</div></div>
+          <div><div class="label">Status</div><div class="value">${s.active ? 'Active' : 'Inactive'}</div></div>
+          <div><div class="label">Username</div><div class="value">${username}</div></div>
+          <div><div class="label">Email</div><div class="value">${email}</div></div>
+          <div><div class="label">Grade / Class</div><div class="value">${grade}</div></div>
+          <div><div class="label">Roll / ID</div><div class="value">${roll}</div></div>
+          <div style="grid-column:1 / -1;"><div class="label">Parent Contact</div><div class="value">${parent}</div></div>
+        </div>
+      </div>
+    `;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function renderPaymentsModal() {
+    const tbody = document.getElementById('modalPaymentsBody');
+    if (!tbody) return;
+    if (!transactions || transactions.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#999;padding:18px;">No transactions</td></tr>';
+      return;
+    }
+    tbody.innerHTML = transactions.slice(0,50).map(tx => `
+      <tr>
+        <td><span class="student-badge">${tx.studentName}</span></td>
+        <td>${tx.description}</td>
+        <td class="${tx.amount < 0 ? 'amount-negative' : 'amount-positive'}">${tx.amount < 0 ? `-$${Math.abs(tx.amount)}` : `+$${tx.amount}`}</td>
+        <td style="font-size:11px;">${tx.timestamp}</td>
+      </tr>
+    `).join('');
+  }
+
+  async function renderRevenueModal() {
+    const el = document.getElementById('modalRevenueInner');
+    if(!el) return;
+
+    // ensure we have latest data
+    if (!transactions || transactions.length === 0) {
+      el.innerHTML = '<div style="padding:18px;color:#666;">Loading revenue data…</div>';
+      await fetchDashboardData();
+    }
+
+    // local state for revenue modal
+    if (!window._revenueState) window._revenueState = { sortKey: 'timestamp', asc: false };
+    const state = window._revenueState;
+
+    function parseDate(ts) {
+      // ts expected like 'YYYY-MM-DD HH:MM:SS'
+      return new Date(ts.replace(' ', 'T'));
+    }
+
+    function formatDate(ts) {
+      // keep local display as YYYY-MM-DD HH:MM:SS
+      return ts;
+    }
+
+    function getFiltered() {
+      const startEl = document.getElementById('revStart');
+      const endEl = document.getElementById('revEnd');
+      const includeFailed = document.getElementById('revIncludeFailed').checked;
+      const start = startEl && startEl.value ? new Date(startEl.value) : null;
+      const end = endEl && endEl.value ? new Date(endEl.value + 'T23:59:59') : null;
+
+      return transactions.filter(tx => {
+        if (!includeFailed && tx.type !== 'payment') return false;
+        if (!tx.timestamp) return false;
+        const d = parseDate(tx.timestamp);
+        if (start && d < start) return false;
+        if (end && d > end) return false;
+        return true;
+      });
+    }
+
+    function sortList(list) {
+      const key = state.sortKey;
+      const asc = state.asc ? 1 : -1;
+      return list.sort((a,b) => {
+        if (key === 'amount') return (Math.abs(b.amount) - Math.abs(a.amount)) * asc;
+        if (key === 'studentName') return a.studentName.localeCompare(b.studentName) * asc;
+        // timestamp
+        return (parseDate(a.timestamp) - parseDate(b.timestamp)) * asc;
+      });
+    }
+
+    function renderTable() {
+      // render controls + table shell first so DOM elements exist
+      el.innerHTML = `
+        <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
+          <div><label class="form-label">Start</label><input id="revStart" type="date" class="form-control"></div>
+          <div><label class="form-label">End</label><input id="revEnd" type="date" class="form-control"></div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:18px;"><label><input id="revIncludeFailed" type="checkbox"> Include failed</label></div>
+          <div style="margin-left:auto;text-align:right;"><div class="label">Total</div><div class="value" id="revTotal" style="font-weight:700;">$0.00</div></div>
+        </div>
+        <div style="overflow:auto; max-height:56vh;">
+          <table class="recent-table" style="width:100%"><thead><tr>
+            <th data-key="timestamp" style="cursor:pointer;">Date ▼</th>
+            <th data-key="studentName" style="cursor:pointer;">Student</th>
+            <th>Description</th>
+            <th data-key="amount" style="cursor:pointer;">Amount</th>
+          </tr></thead>
+          <tbody id="revTableBody"></tbody></table>
+        </div>
+      `;
+
+      // hook up controls (now exist)
+      const startEl = document.getElementById('revStart');
+      const endEl = document.getElementById('revEnd');
+      const incEl = document.getElementById('revIncludeFailed');
+      [startEl, endEl, incEl].forEach(elc => { if (elc) elc.addEventListener('change', renderTable); });
+
+      // compute filtered/sorted rows
+      const rows = getFiltered();
+      const sorted = sortList(rows.slice());
+      const total = sorted.reduce((s,tx) => s + Math.abs(tx.amount||0), 0);
+
+      // populate rows
+      const tbody = document.getElementById('revTableBody');
+      tbody.innerHTML = sorted.map(tx => `
+        <tr>
+          <td style="font-size:11px;">${formatDate(tx.timestamp)}</td>
+          <td><span class="student-badge">${tx.studentName}</span></td>
+          <td>${tx.description}</td>
+          <td class="${tx.amount < 0 ? 'amount-negative' : 'amount-positive'}">${tx.amount < 0 ? `-$${Math.abs(tx.amount)}` : `+$${tx.amount}`}</td>
+        </tr>
+      `).join('');
+
+      // update total display
+      const totalEl = document.getElementById('revTotal'); if (totalEl) totalEl.innerText = `$${total.toFixed(2)}`;
+
+      // header sorting
+      el.querySelectorAll('th[data-key]').forEach(h => h.addEventListener('click', () => {
+        const k = h.getAttribute('data-key');
+        if (state.sortKey === k) state.asc = !state.asc; else { state.sortKey = k; state.asc = false; }
+        renderTable();
+      }));
+    }
+
+    renderTable();
+  }
+
+  function renderTagsModal() {
+    const el = document.getElementById('modalTagsInner');
+    if(!el) return;
+    const tags = students.map(s => ({ uid: s.rfidUid, student: s.name, assigned: !!s.rfidUid }));
+    el.innerHTML = `<div style="display:grid;gap:8px;">${tags.map(t => `<div style="padding:8px;border:1px solid #f0f0f0;border-radius:8px;display:flex;justify-content:space-between;align-items:center;"><div><strong>${t.uid || '—'}</strong><div style="font-size:12px;color:#666;">${t.student || 'Unassigned'}</div></div><div><small style="color:${t.assigned? 'var(--brand-red)':'#999'}">${t.assigned? 'Assigned':'Free'}</small></div></div>`).join('')}</div>`;
+  }
+
+  function renderLiveModal() {
+    const el = document.getElementById('modal-live');
+    if(!el) return;
+    // copy current live message into modal body if desired
+  }
+
+  // process RFID payment
+  function processPayment(rfidUid, customAmount = null) {
+    const amount = customAmount !== null ? customAmount : paymentAmount;
+    const student = students.find(s => s.rfidUid.toUpperCase() === rfidUid.toUpperCase());
+    if (!student) {
+      document.getElementById("rfidLiveMessage").innerHTML = `❌ Unknown RFID: ${rfidUid} | Not registered.`;
+      try { playWarning(); } catch(e) {}
+      setTimeout(() => { if(document.getElementById("rfidLiveMessage")) document.getElementById("rfidLiveMessage").innerHTML = "🟢 Ready for tap. Present RFID card."; }, 2000);
+      return false;
+    }
+    if (!student.active) {
+      document.getElementById("rfidLiveMessage").innerHTML = `⚠️ Card blocked: ${student.name}. Contact admin.`;
+      try { playWarning(); } catch(e) {}
+      return false;
+    }
+    if (student.balance < amount) {
+      document.getElementById("rfidLiveMessage").innerHTML = `💔 Insufficient balance! ${student.name} has $${student.balance}, needs $${amount}.`;
+      try { playError(); } catch(e) {}
+      return false;
+    }
+    student.balance -= amount;
+    transactions.unshift({
+      studentName: student.name,
+      amount: -amount,
+      description: `RFID tap - canteen`,
+      timestamp: getCurrentTimestamp(),
+      type: "payment"
+    });
+    if (transactions.length > 40) transactions.pop();
+    document.getElementById("rfidLiveMessage").innerHTML = `✅ SUCCESS: ${student.name} paid $${amount}. New balance: $${student.balance} (RFID: ${student.rfidUid})`;
+    try { playSuccess(); } catch(e) {}
+    setTimeout(() => {
+      if(document.getElementById("rfidLiveMessage")) document.getElementById("rfidLiveMessage").innerHTML = "🟢 Ready for next tap.";
+    }, 2000);
+    updateDashboard();
+    return true;
+  }
+
+  // manual topup for any student (by uid)
+  function topUpStudent(rfidUid, amount) {
+    const student = students.find(s => s.rfidUid.toUpperCase() === rfidUid.toUpperCase());
+    if(student) {
+      student.balance += amount;
+      transactions.unshift({
+        studentName: student.name,
+        amount: amount,
+        description: `Manual top-up (+$${amount})`,
+        timestamp: getCurrentTimestamp(),
+        type: "credit"
+      });
+      updateDashboard();
+      document.getElementById("rfidLiveMessage").innerHTML = `💰 Top-up: ${student.name} +$${amount} | New balance $${student.balance}`;
+      return true;
+    }
+    return false;
+  }
+
+  function bulkTopupAll(amount = 50) {
+    students.forEach(s => { s.balance += amount; });
+    transactions.unshift({
+      studentName: "System",
+      amount: 0,
+      description: `Bulk top-up +$${amount} to all students`,
+      timestamp: getCurrentTimestamp(),
+      type: "credit"
+    });
+    updateDashboard();
+    document.getElementById("rfidLiveMessage").innerHTML = `🎉 Bulk top-up: $${amount} added to every student.`;
+    setTimeout(() => { if(document.getElementById("rfidLiveMessage")) document.getElementById("rfidLiveMessage").innerHTML = "🟢 Ready for tap."; }, 1800);
+  }
+
+  function resetDemoData() {
+    // No demo data: just reload so server-provided data is shown (clean state)
+    document.getElementById("rfidLiveMessage").innerHTML = "🔄 Reloading...";
+    setTimeout(() => { location.reload(); }, 300);
+  }
+
+  function updateDashboard() {
+    const totalStudents = students.length;
+    const activeCards = students.filter(s => s.active).length;
+    const totalBalance = students.reduce((sum, s) => sum + s.balance, 0);
+    const lowBalanceCount = students.filter(s => Number(s.balance) < 50).length;
+    // use ISO date (YYYY-MM-DD) to match server timestamps
+    const todayDate = new Date().toISOString().slice(0,10);
+    const todayTransactions = transactions.filter(tx => tx.timestamp && tx.timestamp.startsWith(todayDate) && tx.type === "payment");
+    const totalTapsToday = todayTransactions.length;
+    const totalCollected = todayTransactions.reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
+    
+    const statsGrid = document.getElementById("statsGrid");
+    statsGrid.innerHTML = `
+      <div class="stat-card"><div class="stat-accent" style="background:var(--brand-red)"></div><div class="stat-label"><div class="stat-icon" style="background:rgba(200,16,46,0.06);"><i class="fas fa-user-graduate"></i></div>Students</div><div class="stat-value">${totalStudents}</div><div class="stat-change neutral">Enrolled</div></div>
+      <div class="stat-card"><div class="stat-accent" style="background:var(--brand-deep)"></div><div class="stat-label"><div class="stat-icon" style="background:#fff5f7;"><i class="fas fa-id-card"></i></div>Active RFID</div><div class="stat-value">${activeCards}</div><div class="stat-change up">Active cards</div></div>
+      <div class="stat-card"><div class="stat-accent" style="background:var(--brand-gold)"></div><div class="stat-label"><div class="stat-icon" style="background:#fff9f1;"><i class="fas fa-exclamation-triangle"></i></div>Low Balance</div><div class="stat-value">${lowBalanceCount}</div><div class="stat-change neutral">Below $50</div></div>
+      <div class="stat-card"><div class="stat-accent" style="background:var(--brand-gold)"></div><div class="stat-label"><div class="stat-icon" style="background:#fff9f1;"><i class="fas fa-coins"></i></div>Today's Rev</div><div class="stat-value">$${totalCollected}</div><div class="stat-change up">+${totalTapsToday} taps</div></div>
+    `;
+    const elTotalTaps = document.getElementById("totalTapsToday");
+    if (elTotalTaps) elTotalTaps.innerText = totalTapsToday;
+    const elTotalCollected = document.getElementById("totalCollectedToday");
+    if (elTotalCollected) elTotalCollected.innerHTML = `$${totalCollected}`;
+    const elActiveCards = document.getElementById("activeCardsCount");
+    if (elActiveCards) elActiveCards.innerText = activeCards;
+    // removed system wallet display (aggregate across all users)
+    document.getElementById("defaultAmountLabel").innerHTML = `$${paymentAmount}`;
+    
+    const tbody = document.getElementById("transactionsBody");
+    const noMsg = document.getElementById("noTransactionsMsg");
+    if (transactions.length === 0) {
+      if (students && students.length > 0) {
+        // show students list when no transactions yet
+        noMsg.style.display = 'none';
+        tbody.innerHTML = students.map((s, i) => `
+          <tr>
+            <td><span class="student-badge">${s.name}</span></td>
+            <td>—</td>
+            <td>$${Number(s.balance || 0).toFixed(2)}</td>
+            <td style="font-size:11px;">— <button class="btn btn-sm" style="margin-left:8px;" onclick="showStudentDetail(${i})">Details</button></td>
+          </tr>
+        `).join('');
+      } else {
+        tbody.innerHTML = '';
+        if (noMsg) noMsg.style.display = 'block';
+      }
+    } else {
+      if (noMsg) noMsg.style.display = 'none';
+      tbody.innerHTML = transactions.slice(0, 10).map(tx => `
+        <tr>
+          <td><span class="student-badge">${tx.studentName}</span></td>
+          <td>${tx.description}</td>
+          <td class="${tx.amount < 0 ? 'amount-negative' : 'amount-positive'}">${tx.amount < 0 ? `-$${Math.abs(tx.amount)}` : `+$${tx.amount}`}</td>
+          <td style="font-size:11px;">${tx.timestamp}</td>
+        </tr>
+      `).join("");
+    }
+    
+    // render student balances via the dedicated renderer (supports search)
+    renderStudentBalances();
+  }
+
+  // simulate tap from input
+  function simulateTap() {
+    let inputVal = document.getElementById("mockRfidInput").value.trim();
+    if(inputVal === "") {
+      if (!students || students.length === 0) {
+        document.getElementById("rfidLiveMessage").innerText = "⚠️ No students registered. Add students first.";
+        return;
+      }
+      const randomStudent = students[Math.floor(Math.random() * students.length)];
+      inputVal = randomStudent.rfidUid;
+      document.getElementById("mockRfidInput").value = inputVal;
+    }
+    processPayment(inputVal);
+    document.getElementById("mockRfidInput").value = "";
+  }
+
+  function quickTopupSelected() {
+    let inputVal = document.getElementById("mockRfidInput").value.trim();
+    if(inputVal === "") { alert("Please enter RFID UID or select a student from list to top-up"); return; }
+    topUpStudent(inputVal, 50);
+    document.getElementById("mockRfidInput").value = "";
+  }
+
+  // Event bindings
+  const simulateBtn = document.getElementById("simulateTapBtn");
+  if (simulateBtn) simulateBtn.addEventListener("click", simulateTap);
+  document.getElementById("resetDataBtn").addEventListener("click", resetDemoData);
+  document.getElementById("bulkTopupMock").addEventListener("click", () => bulkTopupAll(40));
+  const quickAddBtn = document.getElementById("quickAddBalanceBtn");
+  if (quickAddBtn) quickAddBtn.addEventListener("click", quickTopupSelected);
+  const mockInput = document.getElementById("mockRfidInput");
+  if (mockInput) mockInput.addEventListener("keypress", (e) => { if(e.key === "Enter") simulateTap(); });
+
+  // student search bindings
+  const studentModalSearch = document.getElementById('studentModalSearch');
+  if (studentModalSearch) studentModalSearch.addEventListener('input', renderStudentsModal);
+  const studentBalancesSearch = document.getElementById('studentBalancesSearch');
+  if (studentBalancesSearch) studentBalancesSearch.addEventListener('input', renderStudentBalances);
+
+  // sidebar modal openers
+  document.querySelectorAll('.sidebar .nav-item[data-modal]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.preventDefault();
+      const target = el.getAttribute('data-modal');
+      openModal(target);
+    });
+  });
+
+  // modal close bindings
+  document.querySelectorAll('.modal-overlay').forEach(ov => {
+    ov.addEventListener('click', (e) => {
+      if (e.target === ov || e.target.getAttribute('data-close') != null) closeModal(ov);
+    });
+  });
+
+  // open Add Student modal from students modal
+  const addBtn = document.getElementById('openAddStudentBtn');
+  if (addBtn) addBtn.addEventListener('click', () => { openModal('modal-add-student'); });
+
+  // handle add-student AJAX submit
+  const addSubmit = document.getElementById('addStudentSubmit');
+  if (addSubmit) {
+    addSubmit.addEventListener('click', async () => {
+      const name = document.getElementById('addStudentName').value.trim();
+      const uid = document.getElementById('addStudentUid').value.trim();
+      const username = document.getElementById('addStudentUsername').value.trim();
+      const email = document.getElementById('addStudentEmail').value.trim();
+      const balance = document.getElementById('addStudentBalance').value.trim();
+      const grade = document.getElementById('addStudentGrade').value.trim();
+      const roll = document.getElementById('addStudentRoll').value.trim();
+      const parent = document.getElementById('addStudentParent').value.trim();
+      const active = document.getElementById('addStudentActive').checked;
+      const msg = document.getElementById('addStudentMsg');
+      msg.innerText = '';
+      if (!name || !uid) { msg.innerText = 'Name and UID are required.'; return; }
+      const payload = { name, uid, username, email, balance, grade, roll, parent, active };
+      try {
+        const resp = await fetch('{% url "config:student_register_ajax" %}', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+          body: JSON.stringify(payload)
+        });
+        const data = await resp.json();
+        if (resp.ok && data.status === 'ok') {
+          students.unshift(data.student);
+          renderStudentsModal();
+          updateDashboard();
+          closeModal(document.getElementById('modal-add-student'));
+          document.getElementById('rfidLiveMessage').innerText = `✅ Student ${data.student.name} added.`;
+        } else {
+          msg.innerText = data.message || 'Failed to add student.';
+        }
+      } catch (err) {
+        msg.innerText = 'Network error';
+      }
+    });
+  }
+
+  updateDate();
+  setInterval(updateDate, 1000);
+  // initial fetch and render
+  fetchDashboardData();
+
+  
+
+  // Enable sounds button: user must interact to allow audio in many browsers
+  (function() {
+    const btn = document.getElementById('enableSoundBtn');
+    if (!btn) return;
+    const tryEnable = async () => {
+      const ctx = _ensureAudio();
+      if (ctx && ctx.state === 'suspended') {
+        try { await ctx.resume(); } catch(e) {}
+      }
+      try { playSuccess(); } catch(e) {}
+      localStorage.setItem('soundEnabled', '1');
+      // indicate enabled but keep button visible so user can re-enable if needed
+      btn.innerText = '🔔 Sounds On';
+    };
+    // show current state but keep button visible
+    if (localStorage.getItem('soundEnabled') === '1') btn.innerText = '🔔 Sounds On';
+    else btn.innerText = '🔔 Enable Sounds';
+    btn.addEventListener('click', tryEnable);
+  })();
+</script>
+</body>
+</html>

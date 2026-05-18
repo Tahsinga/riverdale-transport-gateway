@@ -1,6 +1,7 @@
 from django.db import models
 from decimal import Decimal
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 
 class RFIDTag(models.Model):
@@ -33,9 +34,10 @@ class Account(models.Model):
 
 class RideLog(models.Model):
 	student = models.ForeignKey(Student, on_delete=models.CASCADE)
-	timestamp = models.DateTimeField(auto_now_add=True)
+	timestamp = models.DateTimeField(default=timezone.now)
 	fare = models.DecimalField(max_digits=6, decimal_places=2)
 	success = models.BooleanField(default=True)
+	bus_id = models.CharField(max_length=64, blank=True, default='')
 
 	def __str__(self):
 		return f"{self.student.name} @ {self.timestamp} - {self.fare}"

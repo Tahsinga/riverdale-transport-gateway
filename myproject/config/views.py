@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from decimal import Decimal
 import json
+import datetime
 
 from .models import RFIDTag, Student, Account, RideLog, SystemConfig
 from django.contrib.auth.models import User
@@ -539,3 +540,139 @@ def api_dashboard_data(request):
 		})
 
 	return JsonResponse({'students': students_list, 'transactions': recent_list})
+
+
+# ----------------------------------------------------------------
+# Bus firmware API endpoints  (WiFi variant -- riverdale-code-wifi)
+# ----------------------------------------------------------------
+
+def api_health(request):
+	"""GET /api/health/  -- firmware liveness check."""
+	return JsonResponse({'status': 'ok'})
+
+
+def api_bus_sync(request):
+	"""GET /api/bus/sync/?bus_id=<id>
+	Returns the configured fare and all active students with their server-side balances.
+	The bus_id query param is accepted for future per-bus filtering but currently ignored.
+	"""
+	fare = float(SystemConfig.get_solo().cost_per_ride)
+	students_qs = (
+		Student.objects
+		.select_related('rfid_tag')
+		.filter(rfid_tag__isnull=False, rfid_tag__assigned=True)
+	)
+	students_list = []
+	for s in students_qs:
+		acct = Account.objects.filter(student=s).first()
+		students_list.append({
+			'rfid': s.rfid_tag.uid,
+			'balance': float(acct.balance) if acct else 0.0,
+		})
+	return JsonResponse({'fare': fare, 'students': students_list})
+
+
+@csrf_exempt
+def api_bus_transaction(request):
+	"""POST /api/bus/transaction/
+	Body: {"rfid":"AABBCCDD","fare":25.00,"timestamp":1716000000,"bus_id":"bus1"}
+	Logs the ride and deducts the fare from the server-side balance.
+	A subsequent wallet-push will override the balance, so this acts as a safe fallback.
+	"""
+	if request.method != 'POST':
+		return JsonResponse({'error': 'POST required'}, status=400)
+	try:
+		data = json.loads(request.body.decode('utf-8'))
+	except Exception:
+		return JsonResponse({'error': 'invalid JSON'}, status=400)
+
+	rfid = data.get('rfid')
+	fare_raw = data.get('fare')
+	ts_unix = data.get('timestamp')
+	bus = data.get('bus_id', '')
+
+	if not rfid or fare_raw is None:
+		return JsonResponse({'error': 'rfid and fare required'}, status=400)
+	try:
+		fare = Decimal(str(fare_raw))
+	except Exception:
+		return JsonResponse({'error': 'invalid fare'}, status=400)
+
+	if ts_unix:
+		try:
+			ts = datetime.datetime.fromtimestamp(int(ts_unix), tz=datetime.timezone.utc)
+		except Exception:
+			ts = timezone.now()
+	else:
+		ts = timezone.now()
+
+	tag = RFIDTag.objects.filter(uid=rfid).first()
+	if not tag:
+		return JsonResponse({'error': 'tag not found'}, status=404)
+	student = Student.objects.filter(rfid_tag=tag).first()
+	if not student:
+		return JsonResponse({'error': 'student not found'}, status=404)
+
+	account, _ = Account.objects.get_or_create(student=student)
+	success = account.balance >= fare
+	if success:
+		account.balance -= fare
+		account.save()
+
+	RideLog.objects.create(student=student, fare=fare, success=success, timestamp=ts, bus_id=bus)
+
+	# Update last_scan cache so the dashboard reflects bus taps in real time
+	cache.set('last_scan', {
+		'uid': rfid,
+		'student': student.name,
+		'status': 'ok' if success else 'insufficient_funds',
+		'remaining': str(account.balance),
+		'timestamp': timezone.localtime(ts).strftime('%Y-%m-%d %H:%M:%S'),
+		'bus_id': bus,
+	}, 30)
+
+	return JsonResponse({'status': 'ok', 'balance': str(account.balance)}, status=200)
+
+
+@csrf_exempt
+def api_bus_wallets(request):
+	"""POST /api/bus/wallets/
+	Body: {"bus_id":"bus1","students":[{"rfid":"AABBCCDD","balance":125.00},...] }
+	Bulk-updates student balances. The ESP32 is authoritative for balances after each sync.
+	"""
+	if request.method != 'POST':
+		return JsonResponse({'error': 'POST required'}, status=400)
+	try:
+		data = json.loads(request.body.decode('utf-8'))
+	except Exception:
+		return JsonResponse({'error': 'invalid JSON'}, status=400)
+
+	students_payload = data.get('students', [])
+	if not isinstance(students_payload, list):
+		return JsonResponse({'error': 'students must be a list'}, status=400)
+
+	updated = 0
+	not_found = 0
+	for entry in students_payload:
+		rfid = entry.get('rfid')
+		balance_raw = entry.get('balance')
+		if not rfid or balance_raw is None:
+			continue
+		try:
+			balance = Decimal(str(balance_raw))
+		except Exception:
+			continue
+		tag = RFIDTag.objects.filter(uid=rfid).first()
+		if not tag:
+			not_found += 1
+			continue
+		student = Student.objects.filter(rfid_tag=tag).first()
+		if not student:
+			not_found += 1
+			continue
+		acct, _ = Account.objects.get_or_create(student=student)
+		acct.balance = balance
+		acct.save()
+		updated += 1
+
+	return JsonResponse({'status': 'ok', 'updated': updated, 'not_found': not_found}, status=200)

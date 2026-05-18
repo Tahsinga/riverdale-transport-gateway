@@ -16,4 +16,8 @@ urlpatterns = [
     path('students/', views.students_page, name='students'),
     path('cost/', views.update_cost, name='update_cost'),
     path('api/toggle-active/', views.toggle_active, name='toggle_active'),
+    path('api/health/', views.api_health, name='api_health'),
+    path('api/bus/sync/', views.api_bus_sync, name='api_bus_sync'),
+    path('api/bus/transaction/', views.api_bus_transaction, name='api_bus_transaction'),
+    path('api/bus/wallets/', views.api_bus_wallets, name='api_bus_wallets'),
 ]

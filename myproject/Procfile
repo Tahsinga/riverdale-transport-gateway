@@ -1,1 +1,2 @@
 web: gunicorn myproject.wsgi
+release: python manage.py migrate && python setup_test_user.py

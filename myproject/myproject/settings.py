@@ -122,15 +122,4 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# --- Ensure admin user exists on every startup (quick fix for ephemeral DB) ---
-try:
-    from django.contrib.auth.models import User
-    if not User.objects.filter(username='admin').exists():
-        User.objects.create_superuser(
-            username='admin',
-            email='admin@example.com',
-            password='Admin123!'
-        )
-except Exception as e:
-    # Ignore errors if DB not ready (e.g. during migrate/collectstatic)
-    pass
+

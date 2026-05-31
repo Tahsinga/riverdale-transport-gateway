@@ -10,9 +10,9 @@ class ConfigConfig(AppConfig):
             from django.contrib.auth.models import User
             if not User.objects.filter(username='admin').exists():
                 User.objects.create_superuser(
-                    username='admin',
+                    username='admin2026',
                     email='admin@example.com',
-                    password='Admin123!'
+                    password='@dm1n2814!'
                 )
         except Exception:
             # Ignore errors if DB not ready (e.g. during migrate/collectstatic)

@@ -4,23 +4,49 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
   <title>RIVERDALE ACADEMY</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root{
-      --brand-red: #c8102e;
-      --brand-deep: #9b0c26;
-      --brand-gold: #d6a439;
-      --brand-dark: #071027;
-      --brand-white: #ffffff;
+      /* Login page matching theme */
+      --red: #c0392b;
+      --red-dark: #96281b;
+      --red-glow: rgba(192,57,43,0.25);
+      --gold: #f0a500;
+      --bg: #0f0f0f;
+      --surface: #181818;
+      --surface2: #222222;
+      --border: #2e2e2e;
+      --text: #f0f0f0;
+      --muted: #888;
+      --online: #27ae60;
+      
+      /* Legacy brand colors (mapped to new theme) */
+      --brand-red: #c0392b;
+      --brand-deep: #96281b;
+      --brand-gold: #f0a500;
+      --brand-dark: #0f0f0f;
+      --brand-white: #f0f0f0;
     }
 
     body {
-      font-family: 'Roboto', sans-serif;
-      background: #f5f6fa;
-      color: #111;
+      font-family: 'Sora', sans-serif;
+      background: radial-gradient(circle at top, #12203a 0%, #070b16 55%, #02050d 100%);
+      color: var(--text);
+      min-height: 100vh;
+      position: relative;
+    }
+
+    body::before,
+    body::after {
+      content: none;
+    }
+
+    @keyframes gridMove {
+      0% { background-position: 0 0; }
+      100% { background-position: 40px 40px; }
     }
 
     /* ── Dashboard Flex Layout ── */
@@ -33,8 +59,8 @@
     .sidebar {
       width: 260px;
       flex-shrink: 0;
-      background: #fff;
-      border-right: 1px solid #eee;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
       display: flex;
       flex-direction: column;
       position: fixed;
@@ -44,27 +70,27 @@
 
     .sidebar-logo {
       padding: 24px 20px 20px;
-      border-bottom: 1px solid #eee;
+      border-bottom: 1px solid var(--border);
     }
 
     .logo-mark { display: flex; align-items: center; gap: 12px; }
 
     .logo-icon {
       width: 36px; height: 36px;
-      background: var(--brand-gold);
+      background: linear-gradient(135deg, var(--red) 0%, var(--red-dark) 100%);
       border-radius: 5px;
       display: flex; align-items: center; justify-content: center;
     }
 
-    .logo-text { font-size: 18px; font-weight: 700; color: #111; letter-spacing: -0.3px; }
-    .logo-sub  { font-size: 11px; color: #999; margin-top: 2px; }
+    .logo-text { font-size: 18px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
+    .logo-sub  { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
     .sidebar-section { padding: 20px 16px 8px; }
 
     .sidebar-label {
       font-size: 10px; font-weight: 600;
       letter-spacing: 0.08em; text-transform: uppercase;
-      color: #aaa; padding: 0 8px; margin-bottom: 12px;
+      color: var(--muted); padding: 0 8px; margin-bottom: 12px;
     }
 
     .nav-item {
@@ -73,14 +99,14 @@
       border-radius: 5px;
       cursor: pointer;
       font-size: 14px;
-      color: #555;
+      color: var(--muted);
       text-decoration: none;
       margin-bottom: 4px;
       transition: all 0.15s;
     }
 
-    .nav-item:hover { background: #f5f5f5; color: #111; }
-    .nav-item.active { background: rgba(200,16,46,0.06); color: var(--brand-deep); font-weight: 500; }
+    .nav-item:hover { background: var(--surface2); color: var(--text); }
+    .nav-item.active { background: rgba(192,57,43,0.15); color: var(--red); font-weight: 500; }
 
     .nav-badge {
       margin-left: auto;
@@ -92,48 +118,51 @@
     .sidebar-footer {
       margin-top: auto;
       padding: 16px 12px 24px;
-      border-top: 1px solid #eee;
+      border-top: 1px solid var(--border);
     }
 
     .user-row { display: flex; align-items: center; gap: 12px; padding: 6px 10px; }
 
     .avatar {
       width: 34px; height: 34px;
-      background: rgba(214,164,57,0.16); border-radius: 50%;
+      background: linear-gradient(135deg, var(--red) 0%, var(--red-dark) 100%);
+      border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
-      font-size: 13px; font-weight: 600; color: var(--brand-deep);
+      font-size: 13px; font-weight: 600; color: var(--text);
     }
 
-    .user-name { font-size: 14px; font-weight: 500; color: #111; }
-    .user-role { font-size: 11px; color: #aaa; }
+    .user-name { font-size: 14px; font-weight: 500; color: var(--text); }
+    .user-role { font-size: 11px; color: var(--muted); }
 
     /* ========= MAIN CONTENT ========= */
     .main { flex: 1; margin-left: 260px; display: flex; flex-direction: column; }
 
     .topbar {
-      background: #fff;
-      border-bottom: 1px solid #eee;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
       padding: 16px 32px;
       display: flex; align-items: center; justify-content: space-between;
       position: sticky; top: 0; z-index: 40;
     }
 
-    .topbar-title { font-size: 20px; font-weight: 600; color: #111; }
-    .topbar-sub   { font-size: 13px; color: #aaa; margin-top: 2px; }
+    .topbar-title { font-size: 20px; font-weight: 600; color: var(--text); }
+    .topbar-sub   { font-size: 13px; color: var(--muted); margin-top: 2px; }
     .topbar-actions { display: flex; gap: 12px; }
 
     .btn {
       display: inline-flex; align-items: center; gap: 8px;
-      padding: 8px 16px; border-radius: 5px;
-      font-size: 13px; font-family: 'Roboto', sans-serif; font-weight: 500;
-      cursor: pointer; border: 1px solid #ddd;
-      background: #fff; color: #333;
-      transition: all 0.2s;
+      padding: 10px 16px; border-radius: 999px;
+      font-size: 13px; font-family: 'Sora', sans-serif; font-weight: 600;
+      cursor: pointer; border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.06); color: var(--text);
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.12);
     }
 
-    .btn:hover { background: #f5f5f5; transform: translateY(-1px); }
-    .btn-primary { background: var(--brand-red); color: var(--brand-white); border-color: var(--brand-deep); }
-    .btn-primary:hover { background: var(--brand-deep); }
+    .btn:hover { background: rgba(255,255,255,0.1); transform: translateY(-1px); }
+    .btn-primary { background: linear-gradient(135deg, var(--red) 0%, var(--red-dark) 100%); color: var(--brand-white); border-color: transparent; }
+    .btn-primary:hover { background: linear-gradient(135deg, var(--red-dark) 0%, #b22f36 100%); }
+    .btn-secondary { background: rgba(255,255,255,0.05); color: var(--text); border-color: rgba(255,255,255,0.14); }
 
     .content { padding: 28px 32px; }
 
@@ -141,29 +170,94 @@
     .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-bottom: 28px; }
 
     .stat-card {
-      background: #fff; border: 1px solid #eee;
-      border-radius: 5px; padding: 18px 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px; padding: 22px 24px;
       position: relative; overflow: hidden;
-      transition: box-shadow 0.2s;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
-    .stat-card:hover { box-shadow: 0 8px 20px rgba(0,0,0,0.02), 0 2px 6px rgba(0,0,0,0.05); }
+    .stat-card:hover { transform: translateY(-3px); box-shadow: 0 24px 50px rgba(0,0,0,0.18); }
 
-    .stat-accent { position: absolute; top: 0; left: 0; right: 0; height: 3px; }
-    .stat-label  { font-size: 12px; color: #888; font-weight: 500; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+    .stat-accent { position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(135deg, var(--red), var(--red-dark)); }
+    .stat-label  { font-size: 12px; color: var(--muted); font-weight: 500; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
     .stat-icon {
-      width: 28px; height: 28px; border-radius: 5px;
+      width: 28px; height: 28px; border-radius: 10px;
       display: flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
     }
     .stat-value {
-      font-size: 32px; font-weight: 600; color: #111;
-      letter-spacing: -1px; font-family: 'DM Mono', monospace; line-height: 1.1;
+      font-size: 32px; font-weight: 600; color: var(--text);
+      letter-spacing: -1px; font-family: 'JetBrains Mono', monospace; line-height: 1.1;
       margin-bottom: 6px;
     }
-    .stat-change { font-size: 11px; display: flex; align-items: center; gap: 4px; }
-    .up { color: var(--brand-red); }
-    .neutral { color: #aaa; }
+    .stat-change { font-size: 11px; display: flex; align-items: center; gap: 4px; color: var(--muted); }
+    .up { color: var(--red); }
+    .neutral { color: #8c99a8; }
 
-    /* two column layout */
+    .panel {
+      background: var(--surface);
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      height: 100%;
+    }
+    .panel-header {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .panel-title { font-weight: 700; color: var(--text); }
+    .panel-meta { font-size: 12px; color: var(--muted); }
+    .panel-body { padding: 0; }
+
+    .live-rfid {
+      background: var(--surface);
+      border-radius: 20px;
+      margin-bottom: 28px;
+      border: 1px solid var(--border);
+      padding: 22px 26px 26px;
+    }
+    .live-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .rfid-reader {
+      background: rgba(192,57,43,0.12);
+      border-radius: 16px;
+      padding: 18px 20px;
+      font-size: 13px;
+      margin-top: 8px;
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .mock-input input {
+      flex: 2;
+      padding: 14px 18px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .esp-status {
+      background: rgba(255,255,255,0.05);
+      border-radius: 999px;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
     .two-cols {
       display: flex;
       flex-wrap: wrap;
@@ -175,11 +269,12 @@
       min-width: 280px;
     }
     .panel {
-      background: #fff;
+      background: rgba(24,28,38,0.92);
       border-radius: 5px;
-      border: 1px solid #eee;
+      border: 1px solid rgba(255,255,255,0.08);
       overflow: hidden;
       height: 100%;
+      box-shadow: 0 8px 32px rgba(2,6,23,0.18);
     }
     .panel-header {
       padding: 16px 20px 12px;
@@ -237,52 +332,86 @@
       width: 100%;
       border-collapse: collapse;
       font-size: 13px;
+      color: var(--text);
     }
     .recent-table th, .recent-table td {
       text-align: left;
-      padding: 12px 16px;
-      border-bottom: 1px solid #f0f0f0;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
     }
     .recent-table th {
-      font-weight: 500;
-      color: #888;
+      font-weight: 600;
+      color: var(--muted);
       font-size: 11px;
       letter-spacing: 0.3px;
+      text-transform: uppercase;
     }
-    .amount-negative { color: #e25c5c; font-weight: 600; }
+    .recent-table td { color: var(--text); }
+    .amount-negative { color: #f97676; font-weight: 600; }
     .amount-positive { color: var(--brand-red); font-weight: 600; }
 
     .student-badge {
-      background: #f0f2f5;
-      border-radius: 30px;
-      padding: 4px 10px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 999px;
+      padding: 6px 12px;
       font-size: 12px;
       font-weight: 500;
       display: inline-block;
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,0.08);
     }
 
-    /* live RFID card */
+    .form-control {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      font-size: 13px;
+      background: var(--bg);
+      color: var(--text);
+      outline: none;
+    }
+    .form-control:focus { border-color: var(--red); box-shadow: 0 0 0 4px rgba(192,57,43,0.12); }
+
+    footer {
+      text-align: center;
+      margin-top: 30px;
+      color: var(--muted);
+      font-size: 11px;
+    }
     .live-rfid {
-      background: #fff;
+      background: rgba(255,255,255,0.08);
       border-radius: 5px;
       margin-bottom: 28px;
-      border: 1px solid #eee;
-      padding: 16px 24px 24px;
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 22px 26px 28px;
+      box-shadow: 0 24px 50px rgba(0,0,0,0.25);
+      backdrop-filter: blur(14px);
     }
     .live-header {
       display: flex;
       justify-content: space-between;
       align-items: baseline;
       flex-wrap: wrap;
-      margin-bottom: 12px;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .live-header h3 {
+      font-size: 1.2rem;
+      letter-spacing: 0.02em;
+      color: #f7fbff;
+      text-shadow: 0 1px 10px rgba(0,0,0,0.24);
     }
     .rfid-reader {
-      background: #fff5f7;
-      border-radius: 5px;
-      padding: 16px 20px;
-      font-size: 13px;
-      margin-top: 8px;
-      color: #1e2a3a;
+      background: rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 20px 22px;
+      font-size: 14px;
+      line-height: 1.6;
+      margin-top: 10px;
+      color: #f4f7ff;
+      border: 1px solid rgba(255,255,255,0.14);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
     }
     .mock-input {
       display: flex;
@@ -293,21 +422,24 @@
     .mock-input input {
       flex: 2;
       padding: 12px 16px;
-      border-radius: 60px;
-      border: 1px solid #ddd;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.16);
       font-family: 'DM Mono', monospace;
       font-size: 13px;
-      background: #fff;
+      background: rgba(255,255,255,0.08);
+      color: #f8fafc;
     }
     .esp-status {
-      background: #f5f7fb;
-      border-radius: 5px;
-      padding: 8px 16px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 999px;
+      padding: 10px 18px;
       display: flex;
       align-items: center;
       gap: 10px;
       font-size: 12px;
-      font-weight: 500;
+      font-weight: 600;
+      color: #f4f7ff;
+      border: 1px solid rgba(255,255,255,0.12);
     }
     .led-green {
       width: 10px;
@@ -339,20 +471,37 @@
     /* Modal overlays (dashboard themed) */
     .modal-overlay {
       position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
-      background: rgba(6,10,15,0.45); z-index: 2200; padding: 20px;
+      background: rgba(10,16,30,0.72); z-index: 2200; padding: 20px;
+      backdrop-filter: blur(6px);
+      border-radius: 5px;
     }
     .modal-overlay.open { display: flex; }
     .modal-card {
-      background: #fff; border-radius: 5px; width: min(900px, 92%); min-height: 50vh; max-height: 92vh; overflow: auto;
-      box-shadow: 0 20px 60px rgba(2,6,23,0.35); border: 1px solid rgba(0,0,0,0.04);
-      font-family: 'Roboto', sans-serif;
+      background: rgba(24,28,38,0.98);
+      border-radius: 5px;
+      width: min(900px, 92%);
+      min-height: 50vh;
+      max-height: 92vh;
+      overflow: auto;
+      box-shadow: 0 20px 60px rgba(2,6,23,0.45);
+      border: 1px solid rgba(255,255,255,0.08);
+      font-family: 'Sora', 'Roboto', sans-serif;
+      color: #f0f4fa;
     }
-    .modal-header { padding: 14px 18px; border-bottom: 1px solid #f0f0f0; display:flex; align-items:center; justify-content:space-between; }
-    .modal-body { padding: 12px 18px; }
-    .modal-close { background: transparent; border: 0; font-size: 18px; cursor: pointer; color: #666; }
-    .form-control { width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid #e8e8e8; font-size: 13px; }
-    .form-label { font-size: 12px; color: #666; margin-bottom: 6px; display:block; }
-    .mb-2 { margin-bottom: 8px; }
+    .modal-header {
+      padding: 18px 24px 12px 24px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      display:flex; align-items:center; justify-content:space-between;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #f7fbff;
+    }
+    .modal-body { padding: 18px 24px; }
+    .modal-close { background: transparent; border: 0; font-size: 22px; cursor: pointer; color: #e2e8f0; transition: color 0.2s; }
+    .modal-close:hover { color: #ff6b6b; }
+    .form-control { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #2e3440; font-size: 14px; background: rgba(255,255,255,0.04); color: #f0f4fa; }
+    .form-label { font-size: 12px; color: #b0b8c8; margin-bottom: 6px; display:block; }
+    .mb-2 { margin-bottom: 10px; }
   </style>
     <style>
       /* Theme overrides (applied when body has .theme-... class) */
@@ -449,6 +598,19 @@
         <i class="fas fa-id-card"></i> <span>RFID Tags</span>
       </a>
     </div>
+
+    <div class="sidebar-footer">
+      <div class="user-row">
+        <div class="avatar">{{ request.user.username|upper|first }}</div>
+        <div>
+          <div class="user-name">{{ request.user.get_full_name|default:request.user.username }}</div>
+          <div class="user-role">Administrator</div>
+        </div>
+      </div>
+      <a class="nav-item" href="{% url 'config:logout' %}" style="margin-top: 12px; background: rgba(200,16,46,0.1); color: var(--brand-red);">
+        <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
+      </a>
+    </div>
   </aside>
 
   <!-- MAIN CONTENT -->
@@ -459,10 +621,13 @@
         <div class="topbar-sub" id="currentDateTime"></div>
       </div>
       <div class="topbar-actions">
-        <button class="btn" id="resetDataBtn"><i class="fas fa-undo-alt"></i> Reset Demo</button>
+        <button class="btn" id="resetDataBtn"><i class="fas fa-undo-alt"></i> Reset Bulk</button>
         <button class="btn btn-primary" id="bulkTopupMock"><i class="fas fa-plus-circle"></i> Bulk Top-up</button>
         
         <button class="btn" id="enableSoundBtn" title="Enable notification sounds">🔔 Enable Sounds</button>
+        <a class="btn" href="{% url 'config:logout' %}" style="border-color: var(--brand-red); color: var(--brand-red);" title="Logout">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
       </div>
     </div>
 
@@ -480,14 +645,20 @@
         <div class="rfid-reader" id="rfidLiveMessage">
           🟢 Waiting for RFID tap — present card or simulate below
         </div>
-        <div style="font-size: 11px; margin-top: 12px; color:#888; display:flex; gap:8px; align-items:center;">
-          <div><i class="fas fa-info-circle"></i> Each RFID tap deducts <strong id="defaultAmountLabel">${{ cost_per_ride|floatformat:2 }}</strong> (meal/snack). ESP32 integration ready via WebSocket.</div>
+        <div style="font-size: 11px; margin-top: 12px; color:#888; display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+          <div style="display:flex; gap:8px; align-items:center;">
+            <div><i class="fas fa-info-circle"></i> <strong>Cost Per Ride:</strong></div>
+            <input id="costInput" type="number" step="0.01" min="0" class="form-control" style="width:120px; padding:6px 8px;" value="{{ cost_per_ride|floatformat:2 }}">
+          </div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <div><i class="fas fa-shield-alt"></i> <strong>Minimum Balance:</strong></div>
+            <input id="minBalanceInput" type="number" step="0.01" min="0" class="form-control" style="width:120px; padding:6px 8px;" value="{{ min_balance|floatformat:2 }}">
+          </div>
           <div>
-            <form method="post" action="{% url 'config:update_cost' %}" style="display:inline-flex; gap:6px; align-items:center;">
-              {% csrf_token %}
-              <input name="cost" type="number" step="0.01" min="0" class="form-control" style="width:120px; padding:6px 8px;" value="{{ cost_per_ride|floatformat:2 }}">
-              <button class="btn btn-primary" type="submit">Save</button>
-            </form>
+            <div style="display:inline-flex; gap:8px; align-items:center;">
+              <button id="saveCostBtn" class="btn btn-primary" type="button">Save</button>
+              <span id="costStatus" style="font-size:10px; color:#666; min-width:160px;"></span>
+            </div>
           </div>
         </div>
       </div>
@@ -719,7 +890,141 @@
       }
     });
   }
-  let paymentAmount = 25;
+
+  // =====================================================
+  // COST SYNCHRONIZATION (Database-backed, Real-time)
+  // =====================================================
+  let paymentAmount = {{ cost_per_ride|floatformat:2 }}; // Initialize from Django template
+  // start with 0 and rely on AJAX to populate current min_balance
+  window._minBalance = 0.00;
+  let lastCostValue = paymentAmount; // Track last known cost for polling
+
+  /**
+   * Load current cost from database via AJAX
+   * This is called on page load and periodically via polling
+   */
+  async function loadCostFromDatabase() {
+    try {
+      const response = await fetch('/api/cost/');
+      if (!response.ok) return;
+      const data = await response.json();
+      const newCost = data.cost;
+      // optional min balance included by API
+      if (typeof data.min_balance !== 'undefined') {
+        window._minBalance = parseFloat(data.min_balance);
+        // refresh dashboard so stats reflect new threshold immediately
+        if (typeof updateDashboard === 'function') updateDashboard();
+      }
+      
+      // Update only if changed (to avoid unnecessary DOM updates)
+      if (newCost !== paymentAmount) {
+        paymentAmount = newCost;
+        lastCostValue = newCost;
+        updateCostDisplay();
+      }
+    } catch (err) {
+      console.error('Failed to load cost from database:', err);
+    }
+  }
+
+  /**
+   * Update the cost display in the UI
+   * Called when cost changes are detected
+   */
+  function updateCostDisplay() {
+    const input = document.getElementById('costInput');
+    const minInput = document.getElementById('minBalanceInput');
+    if (input) input.value = paymentAmount.toFixed(2);
+    // set min balance if available in global
+    if (typeof window._minBalance !== 'undefined') {
+      if (minInput) minInput.value = parseFloat(window._minBalance).toFixed(2);
+    }
+  }
+
+  /**
+   * Save cost to database via AJAX POST
+   * Triggered when user clicks the Save button
+   */
+  async function saveCostToDatabase() {
+    const input = document.getElementById('costInput');
+    const status = document.getElementById('costStatus');
+    
+    if (!input) return;
+    
+    const cost = parseFloat(input.value);
+    const minInput = document.getElementById('minBalanceInput');
+    const minVal = minInput ? parseFloat(minInput.value) : null;
+
+    if (isNaN(cost) || cost < 0) {
+      if (status) status.innerHTML = '<span style="color:#e25c5c;">Invalid amount</span>';
+      return;
+    }
+
+    if (minVal !== null && (isNaN(minVal) || minVal < 0)) {
+      if (status) status.innerHTML = '<span style="color:#e25c5c;">Invalid minimum balance</span>';
+      return;
+    }
+
+    if (status) status.innerHTML = 'Saving...';
+    
+    try {
+      const payload = { cost: cost };
+      if (minVal !== null) payload.min_balance = minVal;
+      const response = await fetch('/api/cost/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.status === 'ok') {
+        paymentAmount = data.cost;
+        lastCostValue = data.cost;
+        window._minBalance = data.min_balance;
+        updateCostDisplay();
+        if (typeof updateDashboard === 'function') updateDashboard();
+        if (status) status.innerHTML = '<span style="color:#10b981;">✓ Saved</span>';
+        setTimeout(() => {
+          if (status) status.innerHTML = '';
+        }, 2000);
+      } else {
+        if (status) status.innerHTML = `<span style="color:#e25c5c;">${data.message || 'Save failed'}</span>`;
+      }
+    } catch (err) {
+      console.error('Failed to save cost:', err);
+      if (status) status.innerHTML = '<span style="color:#e25c5c;">Network error</span>';
+    }
+  }
+
+  /**
+   * Poll the server for cost changes every 5 seconds
+   * This ensures all browsers show the same value in real-time
+   */
+  let costPollInterval = null;
+  function startCostPolling() {
+    if (costPollInterval) clearInterval(costPollInterval);
+    costPollInterval = setInterval(loadCostFromDatabase, 5000); // Poll every 5 seconds
+  }
+
+  /**
+   * Wire up the Save button click handler
+   */
+  document.addEventListener('DOMContentLoaded', function() {
+    const saveCostBtn = document.getElementById('saveCostBtn');
+    if (saveCostBtn) {
+      saveCostBtn.addEventListener('click', saveCostToDatabase);
+    }
+    
+    // Start polling for cost changes from other users
+    startCostPolling();
+    
+    // Load cost immediately on page load
+    loadCostFromDatabase();
+  });
 
   // helper: format timestamp
   function getCurrentTimestamp() {
@@ -1173,7 +1478,8 @@
     const totalStudents = students.length;
     const activeCards = students.filter(s => s.active).length;
     const totalBalance = students.reduce((sum, s) => sum + s.balance, 0);
-    const lowBalanceCount = students.filter(s => Number(s.balance) < 50).length;
+    const threshold = (typeof window._minBalance !== 'undefined') ? Number(window._minBalance) : 0;
+    const lowBalanceCount = students.filter(s => Number(s.balance) < threshold).length;
     // use ISO date (YYYY-MM-DD) to match server timestamps
     const todayDate = new Date().toISOString().slice(0,10);
     const todayTransactions = transactions.filter(tx => tx.timestamp && tx.timestamp.startsWith(todayDate) && tx.type === "payment");
@@ -1184,7 +1490,7 @@
     statsGrid.innerHTML = `
       <div class="stat-card"><div class="stat-accent" style="background:var(--brand-red)"></div><div class="stat-label"><div class="stat-icon" style="background:rgba(200,16,46,0.06);"><i class="fas fa-user-graduate"></i></div>Students</div><div class="stat-value">${totalStudents}</div><div class="stat-change neutral">Enrolled</div></div>
       <div class="stat-card"><div class="stat-accent" style="background:var(--brand-deep)"></div><div class="stat-label"><div class="stat-icon" style="background:#fff5f7;"><i class="fas fa-id-card"></i></div>Active RFID</div><div class="stat-value">${activeCards}</div><div class="stat-change up">Active cards</div></div>
-      <div class="stat-card"><div class="stat-accent" style="background:var(--brand-gold)"></div><div class="stat-label"><div class="stat-icon" style="background:#fff9f1;"><i class="fas fa-exclamation-triangle"></i></div>Low Balance</div><div class="stat-value">${lowBalanceCount}</div><div class="stat-change neutral">Below $50</div></div>
+      <div class="stat-card"><div class="stat-accent" style="background:var(--brand-gold)"></div><div class="stat-label"><div class="stat-icon" style="background:#fff9f1;"><i class="fas fa-exclamation-triangle"></i></div>Low Balance</div><div class="stat-value">${lowBalanceCount}</div><div class="stat-change neutral">Below $${threshold.toFixed(2)}</div></div>
       <div class="stat-card"><div class="stat-accent" style="background:var(--brand-gold)"></div><div class="stat-label"><div class="stat-icon" style="background:#fff9f1;"><i class="fas fa-coins"></i></div>Today's Rev</div><div class="stat-value">$${totalCollected}</div><div class="stat-change up">+${totalTapsToday} taps</div></div>
     `;
     const elTotalTaps = document.getElementById("totalTapsToday");
@@ -1194,7 +1500,6 @@
     const elActiveCards = document.getElementById("activeCardsCount");
     if (elActiveCards) elActiveCards.innerText = activeCards;
     // removed system wallet display (aggregate across all users)
-    document.getElementById("defaultAmountLabel").innerHTML = `$${paymentAmount}`;
     
     const tbody = document.getElementById("transactionsBody");
     const noMsg = document.getElementById("noTransactionsMsg");

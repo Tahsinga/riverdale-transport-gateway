@@ -46,6 +46,7 @@ class RideLog(models.Model):
 class SystemConfig(models.Model):
 	"""Singleton-like model to store site-wide settings (cost per ride, etc.)."""
 	cost_per_ride = models.DecimalField(max_digits=6, decimal_places=2, default=Decimal('1.00'))
+	min_balance = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
 
 	def __str__(self):
 		return f"SystemConfig: ${self.cost_per_ride}"

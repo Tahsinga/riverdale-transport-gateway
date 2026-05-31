@@ -1,6 +1,9 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from decimal import Decimal
 import json
 import datetime
@@ -9,12 +12,44 @@ from .models import RFIDTag, Student, Account, RideLog, SystemConfig
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.db.models import Sum
-from django.shortcuts import redirect
-from django.contrib import messages
 from django.views.decorators.http import require_http_methods
 from django.core.cache import cache
 
 
+def login_view(request):
+	"""Handle user login with Django authentication"""
+	if request.user.is_authenticated:
+		return redirect('config:dashboard')
+	
+	if request.method == 'POST':
+		username = request.POST.get('username', '').strip()
+		password = request.POST.get('password', '')
+		
+		# Authenticate user against Django's auth system
+		user = authenticate(request, username=username, password=password)
+		
+		if user is not None:
+			login(request, user)
+			messages.success(request, f'Welcome back, {user.username}!')
+			return redirect('config:dashboard')
+		else:
+			messages.error(request, 'Invalid username or password.')
+			return render(request, 'config/riverdale_login.html', {
+				'username': username,
+				'error': 'Invalid credentials'
+			})
+	
+	return render(request, 'config/riverdale_login.html')
+
+
+def logout_view(request):
+	"""Handle user logout"""
+	logout(request)
+	messages.success(request, 'You have been logged out.')
+	return redirect('config:login')
+
+
+@login_required(login_url='config:login')
 def dashboard(request):
 	total_rides = RideLog.objects.filter(success=True).count()
 	total_revenue = RideLog.objects.filter(success=True).aggregate(sum=Sum('fare'))['sum'] or 0
@@ -64,6 +99,7 @@ def dashboard(request):
 		'students_json': json.dumps(students_list),
 		'transactions_json': json.dumps(recent_list),
 		'cost_per_ride': float(SystemConfig.get_solo().cost_per_ride),
+		'min_balance': float(SystemConfig.get_solo().min_balance),
 	})
 
 
@@ -166,6 +202,70 @@ def update_cost(request):
 	cfg.save()
 	messages.success(request, f'Cost per ride updated to ${new_cost}')
 	return redirect('config:dashboard')
+
+
+@require_http_methods(["GET", "POST"])
+def api_cost(request):
+	"""GET /api/cost/ - Get the current cost per ride from database.
+	POST /api/cost/ - Update cost per ride via AJAX.
+	
+	GET Response: { 'cost': 25.00 }
+	POST Body: { 'cost': 25.00 } (JSON or form-encoded)
+	POST Response: { 'status': 'ok', 'cost': 25.00 }
+	
+	This allows real-time updates across all connected clients without page reload.
+	"""
+	if request.method == 'GET':
+		cfg = SystemConfig.get_solo()
+		cost = float(cfg.cost_per_ride)
+		min_balance = float(cfg.min_balance)
+		return JsonResponse({'cost': cost, 'min_balance': min_balance})
+
+	# POST: Update cost
+	try:
+		if request.content_type == 'application/json':
+			payload = json.loads(request.body.decode('utf-8'))
+			cost = payload.get('cost')
+		else:
+			cost = request.POST.get('cost')
+	except Exception:
+		return JsonResponse({'status': 'error', 'message': 'Invalid payload'}, status=400)
+
+	if cost is None or cost == '':
+		return JsonResponse({'status': 'error', 'message': 'Cost is required'}, status=400)
+
+	# validate and set cost
+	try:
+		new_cost = Decimal(str(cost))
+		if new_cost < 0:
+			return JsonResponse({'status': 'error', 'message': 'Cost cannot be negative'}, status=400)
+	except Exception:
+		return JsonResponse({'status': 'error', 'message': 'Invalid cost value'}, status=400)
+
+	# optional: allow updating min_balance in same request
+	min_balance = None
+	try:
+		if request.content_type == 'application/json':
+			payload = json.loads(request.body.decode('utf-8'))
+			min_balance = payload.get('min_balance') if 'min_balance' in payload else None
+		else:
+			min_balance = request.POST.get('min_balance')
+	except Exception:
+		min_balance = None
+
+	cfg = SystemConfig.get_solo()
+	cfg.cost_per_ride = new_cost
+	# validate and set min_balance if provided
+	if min_balance not in (None, '', []):
+		try:
+			new_min = Decimal(str(min_balance))
+			cfg.min_balance = new_min
+		except Exception:
+			return JsonResponse({'status': 'error', 'message': 'Invalid min_balance value'}, status=400)
+
+	cfg.save()
+
+	return JsonResponse({'status': 'ok', 'cost': float(new_cost), 'min_balance': float(cfg.min_balance)}, status=200)
 
 
 @require_http_methods(["GET", "POST"])

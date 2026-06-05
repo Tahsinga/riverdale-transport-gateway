@@ -36,3 +36,209 @@ body{font-family:'Roboto',sans-serif;background:#f6f8fb;color:var(--brand-dark)}
 
 /* Make dashboard-specific logo/icon consistent */
 .logo-icon { background: var(--brand-gold) !important; color: var(--brand-deep) !important; }
+
+/* Brand color classes for text */
+.brand-riverdale { color: #ffd700 !important; font-weight: inherit; }
+.brand-academy { color: #ff0000 !important; font-weight: inherit; }
+
+/* Mobile responsive styles */
+@media (max-width: 768px) {
+  body { font-size: 14px; }
+  
+  /* Sidebar */
+  #sidebar {
+    width: 100% !important;
+    height: auto !important;
+    padding: 12px !important;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    border-right: none;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    margin-bottom: 12px;
+    gap: 12px;
+  }
+  
+  #sidebar h4 {
+    font-size: 14px;
+    margin: 0 !important;
+    margin-right: 20px !important;
+    white-space: nowrap;
+  }
+  
+  #sidebar .nav {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    margin: 0;
+    flex-wrap: wrap;
+  }
+  
+  #sidebar .nav-item {
+    margin-bottom: 0 !important;
+  }
+  
+  #sidebar .nav-link {
+    padding: 6px 10px !important;
+    font-size: 12px;
+    margin-left: 0 !important;
+  }
+  
+  main { padding: 12px !important; }
+  
+  .site-top-strip {
+    font-size: 11px;
+    padding: 6px 8px;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  
+  .site-header {
+    padding: 10px 8px;
+  }
+  
+  .site-header .container {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .site-logo {
+    gap: 8px;
+    font-size: 16px;
+  }
+  
+  .site-logo .mark {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+  
+  .site-nav {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  
+  .site-nav a {
+    margin-left: 0 !important;
+    padding: 6px 8px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  
+  /* Cards */
+  .card { margin-bottom: 12px; }
+  .card-body { padding: 12px !important; }
+  .card-title { font-size: 14px; }
+  
+  /* Forms */
+  .mb-3 { margin-bottom: 10px; }
+  .form-label { font-size: 12px; }
+  .form-control { font-size: 16px; padding: 10px; } /* Prevents iOS zoom */
+  
+  /* Buttons */
+  .btn { padding: 8px 12px; font-size: 12px; }
+  .btn-primary { padding: 9px 14px; font-size: 13px; }
+  
+  /* Modals */
+  .modal-dialog { max-width: 95% !important; }
+  .modal-content { 
+    min-height: auto; 
+    max-height: 85vh;
+    border-radius: 8px !important;
+  }
+  .modal-header { 
+    padding: 12px 16px !important;
+    font-size: 14px;
+  }
+  .modal-body { padding: 12px 16px !important; }
+  
+  /* Tables */
+  table { font-size: 12px; }
+  th, td { padding: 8px 6px; }
+  code { font-size: 10px; }
+  
+  /* Headings */
+  h1 { font-size: 18px; }
+  h2 { font-size: 16px; }
+  h3 { font-size: 15px; }
+  h4 { font-size: 14px; }
+  h5 { font-size: 13px; }
+  h6 { font-size: 12px; }
+  
+  /* Flexbox utilities */
+  .d-flex { flex-direction: column; }
+  .gap-2 { gap: 8px; }
+}
+
+@media (max-width: 480px) {
+  body { font-size: 13px; }
+  
+  .site-top-strip {
+    font-size: 10px;
+    padding: 4px 6px;
+  }
+  
+  .site-header {
+    padding: 8px 6px;
+  }
+  
+  .site-logo {
+    gap: 6px;
+    font-size: 14px;
+  }
+  
+  .site-logo .mark {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+  
+  .site-logo > div:first-of-type {
+    font-size: 13px;
+  }
+  
+  .site-logo > div:nth-of-type(2) {
+    font-size: 10px;
+  }
+  
+  .site-nav a {
+    padding: 4px 6px;
+    font-size: 11px;
+  }
+  
+  main { padding: 8px !important; }
+  
+  #sidebar {
+    gap: 8px;
+  }
+  
+  #sidebar h4 {
+    font-size: 12px;
+    margin-right: 12px !important;
+  }
+  
+  #sidebar .nav-link {
+    padding: 4px 8px !important;
+    font-size: 11px;
+  }
+  
+  /* Forms */
+  .form-control { font-size: 16px; padding: 8px; }
+  .btn { padding: 6px 10px; font-size: 11px; }
+  
+  /* Tables */
+  table { font-size: 11px; }
+  th, td { padding: 6px 4px; }
+  code { font-size: 9px; }
+  
+  /* Headings */
+  h1 { font-size: 16px; }
+  h2 { font-size: 14px; }
+  h3 { font-size: 13px; }
+  h4 { font-size: 12px; }
+  h5 { font-size: 11px; }
+  h6 { font-size: 10px; }
+}

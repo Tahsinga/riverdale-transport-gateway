@@ -57,3 +57,18 @@ class SystemConfig(models.Model):
 		if not obj:
 			obj = cls.objects.create(cost_per_ride=Decimal('1.00'))
 		return obj
+
+
+class UnregisteredTag(models.Model):
+	"""Store unregistered RFID tags with timestamps when they are scanned."""
+	uid = models.CharField(max_length=64)
+	timestamp = models.DateTimeField(default=timezone.now, db_index=True)
+	
+	class Meta:
+		ordering = ['-timestamp']
+		indexes = [
+			models.Index(fields=['-timestamp']),
+		]
+
+	def __str__(self):
+		return f"{self.uid} @ {self.timestamp}"

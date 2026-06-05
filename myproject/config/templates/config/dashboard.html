@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>RIVERDALE ACADEMY</title>
+  <title>Riverdale Academy</title>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
@@ -468,6 +468,113 @@
       .stats-grid { grid-template-columns: repeat(2,1fr); }
     }
 
+    @media (max-width: 600px) {
+      /* Main layout */
+      .dash { flex-direction: column; }
+      .sidebar { position: fixed; bottom: 0; left: 0; right: 0; width: 100%; height: 60px; flex-direction: row; top: auto; z-index: 100; border-right: none; border-top: 1px solid var(--border); }
+      .sidebar-logo { display: none; }
+      .sidebar-section { padding: 8px 4px; }
+      .sidebar-label { display: none; }
+      .nav-item { padding: 8px 6px; font-size: 11px; margin-bottom: 0; }
+      .nav-item span:not(.nav-badge) { display: none; }
+      .sidebar-footer { display: none; }
+      .main { margin-left: 0; margin-bottom: 60px; }
+
+      /* Topbar */
+      .topbar { padding: 12px 16px; flex-direction: column; align-items: flex-start; gap: 8px; }
+      .topbar-title { font-size: 18px; }
+      .topbar-sub { font-size: 11px; }
+      .topbar-actions { width: 100%; gap: 8px; }
+
+      /* Content */
+      .content { padding: 16px 12px; }
+
+      /* Stats grid */
+      .stats-grid { grid-template-columns: 1fr; gap: 12px; margin-bottom: 16px; }
+      .stat-card { padding: 16px 14px; }
+      .stat-value { font-size: 24px; }
+      .stat-label { font-size: 11px; }
+
+      /* Live RFID */
+      .live-rfid { padding: 16px 12px; margin-bottom: 16px; }
+      .live-header { margin-bottom: 12px; }
+      .rfid-reader { padding: 12px 14px; font-size: 12px; margin-top: 6px; }
+      .mock-input input { font-size: 12px; padding: 10px 12px; }
+
+      /* Panels */
+      .panel-header { padding: 14px 12px 10px; font-size: 13px; }
+      .panel-title { font-size: 13px; }
+      .panel-meta { font-size: 10px; }
+
+      /* Modals */
+      .modal-card { width: 95% !important; max-height: 85vh; border-radius: 12px; }
+      .modal-header { padding: 14px 16px 10px; font-size: 1rem; }
+      .modal-body { padding: 12px 16px; }
+      .modal-close { font-size: 20px; }
+      .form-control { padding: 10px 10px; font-size: 14px; }
+      .form-label { font-size: 11px; margin-bottom: 4px; }
+      .mb-2 { margin-bottom: 8px; }
+
+      /* Top Up modal - stack vertically */
+      #modal-topup .modal-card {
+        display: flex !important;
+        flex-direction: column !important;
+        height: auto !important;
+      }
+      #modal-topup .modal-card > div:first-of-type {
+        width: 100% !important;
+        max-height: 280px !important;
+        border-right: none !important;
+        border-bottom: 1px solid #333 !important;
+      }
+      #modal-topup .modal-card > div:last-of-type {
+        flex: 1;
+        padding: 16px !important;
+      }
+
+      /* Buttons */
+      .btn { padding: 10px 14px; font-size: 12px; gap: 6px; }
+      .btn-primary { padding: 11px 14px; }
+
+      /* Tables */
+      table { font-size: 12px; }
+      th, td { padding: 10px 8px; }
+      code { font-size: 10px; padding: 2px 6px; }
+
+      /* Cards */
+      .card { margin-bottom: 12px; border-radius: 12px; }
+      .card-body { padding: 14px; }
+      h3 { font-size: 16px; }
+      h5 { font-size: 14px; }
+      h6 { font-size: 12px; }
+
+      /* Modals - overflow handling */
+      .modal-overlay { padding: 12px; }
+
+      /* Students modal */
+      #modal-students .modal-card { max-height: 80vh; }
+
+      /* Search inputs */
+      input[type="text"], input[type="number"], input[type="email"], input[type="password"] {
+        font-size: 16px; /* Prevents zoom on iOS */
+      }
+
+      /* Flex utilities for mobile */
+      .d-flex { flex-direction: column; }
+      .gap-2 { gap: 8px; }
+    }
+
+    @media (max-width: 400px) {
+      .topbar-title { font-size: 16px; }
+      .content { padding: 12px 8px; }
+      .stat-value { font-size: 20px; }
+      .modal-card { width: 96% !important; }
+      .modal-header { padding: 12px 14px; }
+      .modal-body { padding: 10px 14px; }
+      .btn { padding: 9px 12px; font-size: 11px; }
+      code { font-size: 9px; }
+    }
+
     /* Modal overlays (dashboard themed) */
     .modal-overlay {
       position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
@@ -594,6 +701,10 @@
 
     <div class="sidebar-section">
       <div class="sidebar-label">Admin</div>
+      <a class="nav-item" href="#" data-modal="modal-unregistered-tags">
+        <i class="fas fa-exclamation-triangle"></i> <span>Unregistered Tags</span>
+        <span class="nav-badge" id="unregisterBadge" style="display: none;">0</span>
+      </a>
       <a class="nav-item" href="#" data-modal="modal-tags">
         <i class="fas fa-id-card"></i> <span>RFID Tags</span>
       </a>
@@ -784,20 +895,37 @@
       </div>
 
       <div id="modal-topup" class="modal-overlay" aria-hidden="true">
-        <div class="modal-card">
-          <div class="modal-header">
-            <strong>Top Up Account</strong>
-            <button class="modal-close" data-close>&times;</button>
+        <div class="modal-card" style="max-width:900px;display:flex;flex-direction:row;gap:0;padding:0;height:520px;">
+          <!-- Left Panel: Student List -->
+          <div style="width:320px;max-height:520px;overflow-y:auto;border-right:1px solid #333;background:#0f0f0f;">
+            <div style="padding:14px;background:#181818;border-bottom:1px solid #333;font-weight:600;position:sticky;top:0;z-index:10;">
+              <i class="fas fa-users"></i> Select Student
+            </div>
+            <div style="padding:8px 4px;">
+              <input id="topupStudentSearch" class="form-control" placeholder="Search name or tag..." style="font-size:12px;padding:8px 10px;margin:8px 4px;">
+            </div>
+            <div id="topupStudentList"></div>
           </div>
-          <div class="modal-body">
-            <form method="post" action="{% url 'config:topup' %}">
-              {% csrf_token %}
-              <div class="mb-2"><label class="form-label">RFID UID</label><input name="uid" class="form-control" placeholder="A1B2C3D4"></div>
-              <div class="mb-2"><label class="form-label">Amount</label><input name="amount" class="form-control" placeholder="50"></div>
-              <button class="btn btn-success">Top Up</button>
-            </form>
+          <!-- Right Panel: Top Up Form -->
+          <div style="flex:1;display:flex;flex-direction:column;padding:24px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+              <strong style="font-size:18px;">Top Up Account</strong>
+              <button class="modal-close" data-close>&times;</button>
+            </div>
+            <div id="topupSelectedInfo" style="background:#181818;padding:14px;border-radius:8px;margin-bottom:16px;border-left:4px solid #c0392b;">
+              <div style="color:#aaa;font-size:12px;">No student selected</div>
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Top Up Amount (USD)</label>
+              <input id="topupAmountInput" class="form-control" placeholder="Enter amount..." type="number" min="0" step="0.01">
+            </div>
+            <button class="btn btn-success" id="topupSubmitBtn" type="button" style="padding:12px 20px;font-size:14px;">
+              <i class="fas fa-plus-circle"></i> Top Up Now
+            </button>
+            <div id="topupStatusMsg" style="margin-top:12px;font-size:13px;padding:10px;border-radius:6px;display:none;"></div>
           </div>
         </div>
+      </div>
       </div>
 
       <div id="modal-revenue" class="modal-overlay" aria-hidden="true">
@@ -824,6 +952,40 @@
         </div>
       </div>
 
+      <div id="modal-unregistered-tags" class="modal-overlay" aria-hidden="true">
+        <div class="modal-card">
+          <div class="modal-header">
+            <strong><i class="fas fa-exclamation-triangle" style="color: #ff6b6b; margin-right: 8px;"></i>Unregistered RFID Tags</strong>
+            <button class="modal-close" data-close>&times;</button>
+          </div>
+          <div class="modal-body">
+            <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+              <small style="color: #aaa;">Tags that have been tapped but are not registered in the system</small>
+              <button class="btn btn-secondary" id="clearUnregisteredBtn" style="font-size: 12px;">
+                <i class="fas fa-trash-alt"></i> Clear All
+              </button>
+            </div>
+            <div style="overflow: auto; max-height: 56vh;">
+              <table class="recent-table" style="width: 100%;">
+                <thead>
+                  <tr>
+                    <th>RFID Tag UID</th>
+                    <th>Tapped At</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="unregisteredTagsBody">
+                  <tr>
+                    <td colspan="3" style="text-align: center; color: #aaa; padding: 28px;">No unregistered tags</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div id="unregisteredTagsMsg" style="margin-top: 12px; font-size: 13px; padding: 10px; border-radius: 6px; display: none;"></div>
+          </div>
+        </div>
+      </div>
+
       
       <footer>
         <i class="fas fa-microchip"></i> ESP32 + RFID-RC522 | Real-time payments | Dashboard ready for production
@@ -833,9 +995,204 @@
 </div>
 
 <script>
+
+// --- Top Up Modal: Student Search, Select, and AJAX Top Up ---
+let topupSelectedUid = null;
+let topupSyncInterval = null;
+
+// Fetch fresh student data via AJAX
+async function fetchTopupStudents() {
+  try {
+    const res = await fetch('/api/dashboard-data/');
+    if (!res.ok) return;
+    const data = await res.json();
+    students = data.students || [];
+    renderTopupStudentList(document.getElementById("topupStudentSearch")?.value || "");
+  } catch (e) {
+    // Silent fail, keep using existing data
+  }
+}
+
+function renderTopupStudentList(filter = "") {
+  const listDiv = document.getElementById("topupStudentList");
+  if (!listDiv) return;
+  let html = "";
+  const q = filter.trim().toLowerCase();
+  let filtered = students;
+  if (q) {
+    filtered = students.filter(s =>
+      (s.full_name && s.full_name.toLowerCase().includes(q)) ||
+      (s.rfidUid && s.rfidUid.toLowerCase().includes(q)) ||
+      (s.email && s.email.toLowerCase().includes(q))
+    );
+  }
+  if (filtered.length === 0) {
+    html = '<div style="color:#aaa;padding:20px 8px;text-align:center;font-size:13px;">No students found.</div>';
+  } else {
+    html = filtered.map(s =>
+      `<div class="student-item" onclick="selectTopupStudent('${s.rfidUid.replace(/'/g,"")}', '${(s.full_name||'').replace(/'/g,"")}' )" style="
+        cursor:pointer;
+        padding:14px 10px;
+        margin:6px;
+        border-radius:10px;
+        background:${topupSelectedUid===s.rfidUid?'rgba(192,57,43,0.25)':'rgba(255,255,255,0.02)'};
+        border:${topupSelectedUid===s.rfidUid?'2px solid #c0392b':'1px solid #333'};
+        transition:all 0.15s;
+      " onmouseover="this.style.background='rgba(255,255,255,0.08);this.style.borderColor='#555'" onmouseout="this.style.background='${topupSelectedUid===s.rfidUid?'rgba(192,57,43,0.25)':'rgba(255,255,255,0.02)'};this.style.borderColor='${topupSelectedUid===s.rfidUid?'#c0392b':'#333'}'">
+        <div style="font-weight:700;color:#fff;font-size:15px;margin-bottom:6px;"><i class="fas fa-user-circle" style="color:#c0392b;margin-right:6px;"></i>${s.full_name||'Unknown'}</div>
+        <div style="color:#aaa;font-size:12px;margin-bottom:4px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div><i class="fas fa-id-card" style="color:#ffd700;"></i> ${s.rfidUid||'No tag'}</div>
+          <div><i class="fas fa-coins" style="color:#27ae60;"></i> <span style="color:#27ae60;font-weight:600;">$${s.balance!=null?Number(s.balance).toFixed(2):"0.00"}</span></div>
+        </div>
+        ${s.email?`<div style="color:#888;font-size:11px;margin-bottom:2px;"><i class="fas fa-envelope"></i> ${s.email}</div>`:''}
+        ${s.grade?`<div style="color:#888;font-size:11px;margin-bottom:2px;"><i class="fas fa-book"></i> ${s.grade}</div>`:''}
+        ${s.parent_contact?`<div style="color:#888;font-size:11px;"><i class="fas fa-phone"></i> ${s.parent_contact}</div>`:''}
+      </div>`
+    ).join("");
+  }
+  listDiv.innerHTML = html;
+}
+
+function selectTopupStudent(uid, name) {
+  topupSelectedUid = uid;
+  renderTopupStudentList(document.getElementById("topupStudentSearch").value);
+  // Show selected info on right
+  const infoDiv = document.getElementById("topupSelectedInfo");
+  const s = students.find(st => st.rfidUid === uid);
+  if (infoDiv && s) {
+    infoDiv.innerHTML = `
+      <div style="font-weight:700;color:#fff;font-size:16px;margin-bottom:10px;"><i class="fas fa-user-circle" style="color:#c0392b;margin-right:8px;"></i>${s.full_name||s.name||''}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12px;">
+        <div style="background:rgba(192,57,43,0.1);padding:8px;border-radius:6px;">
+          <span style="color:#aaa;">RFID UID</span>
+          <div style="color:#f0f0f0;font-weight:600;margin-top:4px;">${s.rfidUid||'No tag'}</div>
+        </div>
+        <div style="background:rgba(39,174,96,0.1);padding:8px;border-radius:6px;">
+          <span style="color:#aaa;">Current Balance</span>
+          <div style="color:#27ae60;font-weight:700;margin-top:4px;font-size:13px;">$${s.balance!=null?Number(s.balance).toFixed(2):"0.00"}</div>
+        </div>
+        ${s.grade?`<div style="background:rgba(240,165,0,0.1);padding:8px;border-radius:6px;"><span style="color:#aaa;">Class/Grade</span><div style="color:#f0f0f0;font-weight:500;margin-top:4px;">${s.grade}</div></div>`:''}
+        ${s.roll_id?`<div style="background:rgba(240,165,0,0.1);padding:8px;border-radius:6px;"><span style="color:#aaa;">Roll/ID</span><div style="color:#f0f0f0;font-weight:500;margin-top:4px;">${s.roll_id}</div></div>`:''}
+        ${s.email?`<div style="background:rgba(70,130,180,0.1);padding:8px;border-radius:6px;grid-column:1/-1;"><span style="color:#aaa;">Email</span><div style="color:#f0f0f0;font-weight:500;margin-top:4px;word-break:break-all;">${s.email}</div></div>`:''}
+        ${s.parent_contact?`<div style="background:rgba(70,130,180,0.1);padding:8px;border-radius:6px;grid-column:1/-1;"><span style="color:#aaa;">Parent Contact</span><div style="color:#f0f0f0;font-weight:500;margin-top:4px;">${s.parent_contact}</div></div>`:''}
+      </div>
+    `;
+  }
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+  const search = document.getElementById("topupStudentSearch");
+  const modal = document.getElementById("modal-topup");
+  
+  if (search) {
+    search.addEventListener("input", e => renderTopupStudentList(e.target.value));
+  }
+  
+  // Initial render
+  if (students.length > 0) {
+    renderTopupStudentList("");
+    selectTopupStudent(students[0].rfidUid, students[0].full_name);
+  }
+
+  // Monitor modal open/close to sync student data
+  if (modal) {
+    // Fetch fresh data when modal opens
+    const observer = new MutationObserver(() => {
+      if (modal.classList.contains("open")) {
+        // Modal opened - start syncing
+        fetchTopupStudents();
+        if (!topupSyncInterval) {
+          topupSyncInterval = setInterval(() => {
+            fetchTopupStudents();
+          }, 2000); // Sync every 2 seconds
+        }
+      } else {
+        // Modal closed - stop syncing
+        if (topupSyncInterval) {
+          clearInterval(topupSyncInterval);
+          topupSyncInterval = null;
+        }
+      }
+    });
+    observer.observe(modal, { attributes: true, attributeFilter: ["class"] });
+  }
+
+  // Top Up button AJAX logic
+  const btn = document.getElementById("topupSubmitBtn");
+  if (btn) {
+    btn.addEventListener("click", async function() {
+      const amount = Number(document.getElementById("topupAmountInput").value);
+      const status = document.getElementById("topupStatusMsg");
+      if (!topupSelectedUid) {
+        status.textContent = "❌ Please select a student.";
+        status.style.color = "#ff6b6b";
+        status.style.display = "block";
+        return;
+      }
+      if (!amount || amount <= 0) {
+        status.textContent = "❌ Enter a valid amount.";
+        status.style.color = "#ff6b6b";
+        status.style.display = "block";
+        return;
+      }
+      // Call backend to update balance
+      try {
+        const res = await fetch('/api/topup/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+          body: JSON.stringify({ uid: topupSelectedUid, amount: amount })
+        });
+        if (!res.ok) {
+          status.textContent = "❌ Top up failed. Please try again.";
+          status.style.color = "#ff6b6b";
+          status.style.display = "block";
+          return;
+        }
+        const data = await res.json();
+        // Update local student data
+        const s = students.find(st => st.rfidUid === topupSelectedUid);
+        if (s) {
+          s.balance = data.new_balance || (Number(s.balance)||0) + amount;
+          status.innerHTML = `✅ Topped up <b>$${amount.toFixed(2)}</b> for <b>${s.full_name}</b>. New balance: <b>$${s.balance.toFixed(2)}</b>`;
+          status.style.color = "#27ae60";
+          status.style.display = "block";
+          selectTopupStudent(s.rfidUid, s.full_name);
+          renderTopupStudentList(document.getElementById("topupStudentSearch").value);
+          document.getElementById("topupAmountInput").value = "";
+          // Sync again to ensure latest data
+          setTimeout(() => fetchTopupStudents(), 500);
+        }
+      } catch (e) {
+        status.textContent = "❌ Error: " + e.message;
+        status.style.color = "#ff6b6b";
+        status.style.display = "block";
+      }
+    });
+  }
+});
+
+  // ---------- CSRF HELPER ----------
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
   // ---------- SCHOOL DATA MODEL (RFID & PAYMENT) ----------
   // fetch students and transactions from server API so dashboard updates after runtime changes
   let students = [];
+  {% if students_json %}
+  students = JSON.parse('{{ students_json|escapejs }}');
+  {% endif %}
   let transactions = [];
   // fetch server-side snapshot for dashboard
   async function fetchDashboardData() {
@@ -1139,6 +1496,7 @@
     if (id === 'modal-revenue') renderRevenueModal();
     if (id === 'modal-tags') renderTagsModal();
     if (id === 'modal-live') renderLiveModal();
+    if (id === 'modal-unregistered-tags') renderUnregisteredTagsModal();
   }
 
   function closeModal(el) {
@@ -1558,6 +1916,147 @@
     document.getElementById("mockRfidInput").value = "";
   }
 
+  // --- Unregistered Tags Functions ---
+  let unregisteredTags = [];
+
+  async function fetchUnregisteredTags() {
+    try {
+      const resp = await fetch('{% url "config:api_unregistered_tags" %}');
+      if (!resp.ok) {
+        console.error('Failed to fetch unregistered tags:', resp.status);
+        return [];
+      }
+      const data = await resp.json();
+      unregisteredTags = data.unregistered_tags || [];
+      console.log('Fetched unregistered tags:', unregisteredTags);
+      updateUnregisteredBadge();
+      return unregisteredTags;
+    } catch (e) {
+      console.error('Error fetching unregistered tags:', e);
+      return [];
+    }
+  }
+
+  async function fetchUnregisteredTagsCount() {
+    try {
+      const resp = await fetch('{% url "config:api_unregistered_tags_count" %}');
+      if (!resp.ok) return;
+      const data = await resp.json();
+      const count = data.count || 0;
+      const badge = document.getElementById('unregisterBadge');
+      if (badge) {
+        if (count > 0) {
+          badge.innerText = count;
+          badge.style.display = 'inline-block';
+        } else {
+          badge.style.display = 'none';
+        }
+      }
+      return count;
+    } catch (e) {
+      console.error('Error fetching count:', e);
+    }
+  }
+
+  function updateUnregisteredBadge() {
+    const count = unregisteredTags.length;
+    const badge = document.getElementById('unregisterBadge');
+    if (badge) {
+      if (count > 0) {
+        badge.innerText = count;
+        badge.style.display = 'inline-block';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+  }
+
+  async function renderUnregisteredTagsModal() {
+    const tbody = document.getElementById('unregisteredTagsBody');
+    if (!tbody) return;
+
+    // Show loading state
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #aaa; padding: 28px;">Loading...</td></tr>';
+
+    // Fetch fresh data from server
+    console.log('Rendering unregistered tags modal...');
+    const tags = await fetchUnregisteredTags();
+    
+    console.log('Tags fetched:', tags);
+
+    if (!tags || tags.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #aaa; padding: 28px;">No unregistered tags</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = tags.map((tag) => `
+      <tr>
+        <td><code style="background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px; font-size: 12px;">${tag.uid}</code></td>
+        <td style="font-size: 12px; color: #aaa;">${tag.timestamp}</td>
+        <td style="text-align: right;">
+          <button class="btn" style="font-size: 11px; padding: 6px 10px;" onclick="deleteUnregisteredTag(${tag.id})">
+            <i class="fas fa-trash-alt"></i> Remove
+          </button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  async function deleteUnregisteredTag(tagId) {
+    try {
+      const resp = await fetch('{% url "config:api_unregistered_tags_delete" %}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+        body: JSON.stringify({ id: tagId })
+      });
+      if (resp.ok) {
+        console.log('Tag deleted:', tagId);
+        await fetchUnregisteredTags();
+        await renderUnregisteredTagsModal();
+      } else {
+        alert('Failed to delete tag');
+      }
+    } catch (e) {
+      console.error('Error deleting tag:', e);
+      alert('Error deleting tag: ' + e.message);
+    }
+  }
+
+  async function clearAllUnregisteredTags() {
+    if (!confirm('Are you sure you want to clear all unregistered tags?')) return;
+    try {
+      const resp = await fetch('{% url "config:api_unregistered_tags_delete" %}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+        body: JSON.stringify({ clear_all: true })
+      });
+      if (resp.ok) {
+        console.log('All tags cleared');
+        unregisteredTags = [];
+        updateUnregisteredBadge();
+        await renderUnregisteredTagsModal();
+      } else {
+        alert('Failed to clear tags');
+      }
+    } catch (e) {
+      console.error('Error clearing tags:', e);
+      alert('Error clearing tags: ' + e.message);
+    }
+  }
+
+  // Event binding for clear button
+  (function() {
+    setTimeout(function() {
+      const clearBtn = document.getElementById('clearUnregisteredBtn');
+      if (clearBtn) {
+        clearBtn.addEventListener('click', clearAllUnregisteredTags);
+        console.log('Clear button event bound successfully');
+      } else {
+        console.log('Clear button not found');
+      }
+    }, 100);
+  })();
+
   // Event bindings
   const simulateBtn = document.getElementById("simulateTapBtn");
   if (simulateBtn) simulateBtn.addEventListener("click", simulateTap);
@@ -1637,6 +2136,9 @@
   setInterval(updateDate, 1000);
   // initial fetch and render
   fetchDashboardData();
+  fetchUnregisteredTagsCount();
+  // update unregistered tags count every 2 seconds
+  setInterval(fetchUnregisteredTagsCount, 2000);
 
   
 

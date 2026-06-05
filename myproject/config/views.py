@@ -8,7 +8,7 @@ from decimal import Decimal
 import json
 import datetime
 
-from .models import RFIDTag, Student, Account, RideLog, SystemConfig
+from .models import RFIDTag, Student, Account, RideLog, SystemConfig, UnregisteredTag
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.db.models import Sum
@@ -128,7 +128,8 @@ def rfid_scan(request):
 
 	tag = RFIDTag.objects.filter(uid=uid).first()
 	if not tag:
-		# unknown tag - cache for dashboard polling so UI can show unregistered tag
+		# unknown tag - save to database and cache for dashboard polling
+		UnregisteredTag.objects.create(uid=uid)
 		cache.set('last_scan', {
 			'uid': uid,
 			'student': None,
@@ -138,6 +139,8 @@ def rfid_scan(request):
 		}, 30)
 		return JsonResponse({'error': 'tag not found'}, status=404)
 	if not tag.assigned:
+		# tag exists but not assigned - save to database and cache
+		UnregisteredTag.objects.create(uid=uid)
 		cache.set('last_scan', {
 			'uid': uid,
 			'student': None,
@@ -149,6 +152,8 @@ def rfid_scan(request):
 
 	student = Student.objects.filter(rfid_tag=tag).first()
 	if not student:
+		# tag assigned but student not found - save to database and cache
+		UnregisteredTag.objects.create(uid=uid)
 		cache.set('last_scan', {
 			'uid': uid,
 			'student': None,
@@ -341,6 +346,48 @@ def topup(request):
 		return redirect('config:dashboard')
 
 	return render(request, 'config/topup.html')
+
+
+@login_required
+def api_topup(request):
+	"""AJAX Top Up API: POST /api/topup/ with JSON {uid, amount}"""
+	if request.method != 'POST':
+		return JsonResponse({'error': 'POST required'}, status=400)
+	
+	try:
+		data = json.loads(request.body)
+		uid = data.get('uid', '').strip()
+		amount_str = data.get('amount')
+		
+		if not uid or not amount_str:
+			return JsonResponse({'error': 'uid and amount required'}, status=400)
+		
+		amount = Decimal(str(amount_str))
+		if amount <= 0:
+			return JsonResponse({'error': 'Amount must be positive'}, status=400)
+		
+		# Find tag and student
+		tag = RFIDTag.objects.filter(uid=uid).first()
+		if not tag:
+			return JsonResponse({'error': 'Tag not found'}, status=404)
+		
+		student = Student.objects.filter(rfid_tag=tag).first()
+		if not student:
+			return JsonResponse({'error': 'Student not found for tag'}, status=404)
+		
+		# Get or create account and update balance
+		account, _ = Account.objects.get_or_create(student=student)
+		account.balance += amount
+		account.save()
+		
+		return JsonResponse({
+			'success': True,
+			'student': student.name,
+			'new_balance': float(account.balance),
+			'message': f'Added {amount} to {student.name}'
+		})
+	except Exception as e:
+		return JsonResponse({'error': str(e)}, status=500)
 
 
 def students_page(request):
@@ -577,8 +624,8 @@ def student_delete_ajax(request):
 @require_http_methods(["POST"])
 def toggle_active(request):
 	"""Toggle the active state (RFID tag assigned) for a student's device.
-	Expects JSON { "id": <student_id> } or form-encoded POST.
-	Returns JSON { 'status': 'ok', 'active': true/false }.
+	Expects JSON { "id": <student_id> } or { "uid": <rfid_uid> } or form-encoded POST.
+	Returns JSON { 'status': 'ok', 'active': true/false, 'student_name': <name> }.
 	"""
 	try:
 		payload = json.loads(request.body.decode('utf-8')) if request.content_type == 'application/json' else request.POST
@@ -586,10 +633,20 @@ def toggle_active(request):
 		return JsonResponse({'status': 'error', 'message': 'Invalid payload'}, status=400)
 
 	sid = payload.get('id') or payload.get('student_id')
-	if not sid:
-		return JsonResponse({'status': 'error', 'message': 'Student id required'}, status=400)
+	uid = payload.get('uid')
+	
+	if not sid and not uid:
+		return JsonResponse({'status': 'error', 'message': 'Student id or UID required'}, status=400)
 
-	student = Student.objects.filter(id=sid).first()
+	# Find student by ID or UID
+	if sid:
+		student = Student.objects.filter(id=sid).first()
+	elif uid:
+		tag = RFIDTag.objects.filter(uid=uid).first()
+		if not tag:
+			return JsonResponse({'status': 'error', 'message': f'RFID tag with UID {uid} not found'}, status=404)
+		student = Student.objects.filter(rfid_tag=tag).first()
+	
 	if not student:
 		return JsonResponse({'status': 'error', 'message': 'Student not found'}, status=404)
 
@@ -600,7 +657,7 @@ def toggle_active(request):
 	tag.assigned = not bool(tag.assigned)
 	tag.save()
 
-	return JsonResponse({'status': 'ok', 'active': bool(tag.assigned)})
+	return JsonResponse({'status': 'ok', 'active': bool(tag.assigned), 'student_name': student.name})
 
 
 def last_scan(request):
@@ -618,14 +675,15 @@ def api_dashboard_data(request):
 		students_list.append({
 			'id': s.id,
 			'name': s.name,
+			'full_name': s.name,
 			'rfidUid': s.rfid_tag.uid if s.rfid_tag else '',
 			'balance': float(acct.balance) if acct else 0,
 			'active': bool(s.rfid_tag and s.rfid_tag.assigned),
 			'username': s.user.username if getattr(s, 'user', None) else None,
 			'email': s.user.email if getattr(s, 'user', None) else None,
 			'grade': s.grade,
-			'roll': s.roll,
-			'parent': s.parent_contact,
+			'roll_id': s.roll,
+			'parent_contact': s.parent_contact,
 		})
 
 	recent_qs = RideLog.objects.select_related('student').order_by('-timestamp')[:50]
@@ -640,6 +698,52 @@ def api_dashboard_data(request):
 		})
 
 	return JsonResponse({'students': students_list, 'transactions': recent_list})
+
+
+@require_http_methods(["GET"])
+def api_unregistered_tags(request):
+	"""GET /api/unregistered-tags/ - Returns all unregistered tags with timestamps."""
+	tags = UnregisteredTag.objects.all().order_by('-timestamp')[:100]
+	tags_list = []
+	for tag in tags:
+		tags_list.append({
+			'uid': tag.uid,
+			'timestamp': timezone.localtime(tag.timestamp).strftime('%Y-%m-%d %H:%M:%S'),
+			'id': tag.id,
+		})
+	return JsonResponse({'unregistered_tags': tags_list})
+
+
+@require_http_methods(["GET"])
+def api_unregistered_tags_count(request):
+	"""GET /api/unregistered-tags/count/ - Returns count of unregistered tags."""
+	count = UnregisteredTag.objects.count()
+	return JsonResponse({'count': count})
+
+
+@require_http_methods(["POST"])
+def api_unregistered_tags_delete(request):
+	"""POST /api/unregistered-tags/delete/ - Delete unregistered tag by ID or clear all."""
+	try:
+		payload = json.loads(request.body.decode('utf-8')) if request.content_type == 'application/json' else request.POST
+	except Exception:
+		return JsonResponse({'status': 'error', 'message': 'Invalid payload'}, status=400)
+
+	tag_id = payload.get('id')
+	clear_all = payload.get('clear_all', False)
+
+	if clear_all:
+		UnregisteredTag.objects.all().delete()
+		return JsonResponse({'status': 'ok', 'message': 'All unregistered tags cleared'})
+	elif tag_id:
+		try:
+			tag = UnregisteredTag.objects.get(id=tag_id)
+			tag.delete()
+			return JsonResponse({'status': 'ok', 'message': 'Tag deleted'})
+		except UnregisteredTag.DoesNotExist:
+			return JsonResponse({'status': 'error', 'message': 'Tag not found'}, status=404)
+	else:
+		return JsonResponse({'status': 'error', 'message': 'ID or clear_all required'}, status=400)
 
 
 # ----------------------------------------------------------------

@@ -1,19 +1,32 @@
 {% extends 'config/base.html' %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h3>Students</h3>
-  <div>
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStudentModal"><i class="fas fa-user-plus"></i> Add Student</button>
+<div class="d-flex justify-content-between align-items-center mb-3" style="flex-direction: column; gap: 12px;">
+  <h3 style="margin: 0; width: 100%; text-align: center;">Students</h3>
+  <div style="width: 100%;">
+    <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#addStudentModal"><i class="fas fa-user-plus"></i> Add Student</button>
+  </div>
+</div>
+
+<!-- Deactivate by UID Section -->
+<div class="card mb-3">
+  <div class="card-body">
+    <h6 class="card-title mb-3"><i class="fas fa-ban"></i> Deactivate by UID</h6>
+    <div class="d-flex gap-2" style="flex-direction: column; gap: 8px;">
+      <input type="text" id="deactivateUidInput" class="form-control" placeholder="Paste RFID UID here..." style="max-width: 100%;">
+      <button class="btn btn-warning w-100" id="deactivateByUidBtn"><i class="fas fa-ban"></i> Deactivate</button>
+      <span id="deactivateUidMsg" style="display:none;margin-top:0;margin-left:0;font-size:12px;"></span>
+    </div>
   </div>
 </div>
 
 <div class="card">
   <div class="card-body p-0">
-    <table class="table mb-0">
-      <thead class="table-light">
-        <tr><th>Name</th><th>RFID UID</th><th>Balance</th><th>Status</th><th></th></tr>
-      </thead>
+    <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+      <table class="table mb-0">
+        <thead class="table-light">
+          <tr><th style="font-size:12px;">Name</th><th style="font-size:12px;">RFID UID</th><th style="font-size:12px;">Balance</th><th style="font-size:12px;">Status</th><th style="font-size:12px;"></th></tr>
+        </thead>
       <tbody>
         {% for s in students_list %}
         <tr>
@@ -135,29 +148,73 @@
     }
   }
 
-  document.addEventListener('click', async (ev) => {
-    const btn = ev.target.closest('.btn-status-toggle, .btn-status-toggle-modal');
-    if (!btn) return;
-    ev.preventDefault();
-    const sid = btn.dataset.studentId;
-    if (!sid) return;
-    btn.disabled = true;
-    try {
-      const data = await toggleActiveRequest(sid);
-      if (data && data.status === 'ok') {
-        const active = !!data.active;
-        // update any row button and modal button for this student
-        document.querySelectorAll(`[data-student-id='${sid}']`).forEach(el => setButtonState(el, active));
-        const modalStatus = document.getElementById('modalStatus' + sid);
-        if (modalStatus) modalStatus.innerText = active ? 'Active' : 'Inactive';
-      } else {
-        alert(data.message || 'Failed to toggle active state');
-      }
-    } catch (e) {
-      alert('Network error');
-    } finally {
-      btn.disabled = false;
+  document.addEventListener('DOMContentLoaded', () => {
+    // Deactivate by UID handler
+    const deactivateByUidBtn = document.getElementById('deactivateByUidBtn');
+    if (deactivateByUidBtn) {
+      deactivateByUidBtn.addEventListener('click', async () => {
+        const uid = document.getElementById('deactivateUidInput').value.trim();
+        const msg = document.getElementById('deactivateUidMsg');
+        
+        if (!uid) {
+          msg.innerHTML = '<span style="color:#ff6b6b;"><i class="fas fa-exclamation-circle"></i> Please enter a UID</span>';
+          msg.style.display = 'inline-block';
+          return;
+        }
+        
+        deactivateByUidBtn.disabled = true;
+        try {
+          const res = await fetch('{% url "config:toggle_active" %}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+            body: JSON.stringify({ uid: uid })
+          });
+          const data = await res.json();
+          
+          if (data.status === 'ok') {
+            msg.innerHTML = `<span style="color:#27ae60;"><i class="fas fa-check-circle"></i> <b>${data.student_name}</b> has been deactivated</span>`;
+            msg.style.display = 'inline-block';
+            document.getElementById('deactivateUidInput').value = '';
+            // Update all student buttons in table
+            setTimeout(() => location.reload(), 1000);
+          } else {
+            msg.innerHTML = `<span style="color:#ff6b6b;"><i class="fas fa-exclamation-circle"></i> ${data.message || 'Error'}</span>`;
+            msg.style.display = 'inline-block';
+          }
+        } catch (e) {
+          msg.innerHTML = `<span style="color:#ff6b6b;"><i class="fas fa-exclamation-circle"></i> Error: ${e.message}</span>`;
+          msg.style.display = 'inline-block';
+        } finally {
+          deactivateByUidBtn.disabled = false;
+        }
+      });
     }
+
+    // Activate/Deactivate button handler
+    document.addEventListener('click', async (ev) => {
+      const btn = ev.target.closest('.btn-status-toggle, .btn-status-toggle-modal');
+      if (!btn) return;
+      ev.preventDefault();
+      const sid = btn.dataset.studentId;
+      if (!sid) return;
+      btn.disabled = true;
+      try {
+        const data = await toggleActiveRequest(sid);
+        if (data && data.status === 'ok') {
+          const active = !!data.active;
+          // update any row button and modal button for this student
+          document.querySelectorAll(`[data-student-id='${sid}']`).forEach(el => setButtonState(el, active));
+          const modalStatus = document.getElementById('modalStatus' + sid);
+          if (modalStatus) modalStatus.innerText = active ? 'Active' : 'Inactive';
+        } else {
+          alert(data.message || 'Failed to toggle active state');
+        }
+      } catch (e) {
+        alert('Network error');
+      } finally {
+        btn.disabled = false;
+      }
+    });
   });
 </script>
 {% endblock %}

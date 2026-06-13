@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse, FileResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -14,6 +14,24 @@ from django.utils import timezone
 from django.db.models import Sum
 from django.views.decorators.http import require_http_methods
 from django.core.cache import cache
+from django.conf import settings
+import openpyxl
+import re
+from io import BytesIO
+from pathlib import Path
+
+
+def logo_png(request):
+	"""Serve the project logo as a fallback when static files are not yet collected/restarted."""
+	paths = [
+		Path(settings.BASE_DIR) / 'static' / 'img' / 'logo.png',
+		Path(settings.BASE_DIR) / 'staticfiles' / 'img' / 'logo.png',
+		Path(settings.BASE_DIR) / 'config' / 'templates' / 'config' / 'logo.png',
+	]
+	for path in paths:
+		if path.exists():
+			return FileResponse(open(path, 'rb'), content_type='image/png')
+	return JsonResponse({'error': 'logo not found'}, status=404)
 
 
 def login_view(request):
@@ -74,8 +92,11 @@ def dashboard(request):
 			'email': s.user.email if getattr(s, 'user', None) else None,
 			# metadata fields persisted on Student
 			'grade': s.grade,
+			'gender': s.gender,
 			'roll': s.roll,
+			'register_no': s.roll,
 			'parent': s.parent_contact,
+			'section': s.parent_contact,
 		})
 
 	recent_qs = RideLog.objects.select_related('student').order_by('-timestamp')[:20]
@@ -404,6 +425,7 @@ def students_page(request):
 			'username': s.user.username if getattr(s, 'user', None) else None,
 			'email': s.user.email if getattr(s, 'user', None) else None,
 			'grade': s.grade,
+			'gender': s.gender,
 			'roll': s.roll,
 			'parent': s.parent_contact,
 		})
@@ -424,15 +446,19 @@ def student_register_ajax(request):
 	except Exception:
 		return JsonResponse({'status': 'error', 'message': 'Invalid payload'}, status=400)
 
-	if not name or not uid:
-		return JsonResponse({'status': 'error', 'message': 'Name and UID required'}, status=400)
+	if not name:
+		return JsonResponse({'status': 'error', 'message': 'Name required'}, status=400)
 
 	# optional fields
 	username = payload.get('username') if isinstance(payload, dict) else request.POST.get('username')
 	email = payload.get('email') if isinstance(payload, dict) else request.POST.get('email')
 	balance = payload.get('balance') if isinstance(payload, dict) else request.POST.get('balance')
 	grade = payload.get('grade') if isinstance(payload, dict) else request.POST.get('grade')
+	gender = payload.get('gender') if isinstance(payload, dict) else request.POST.get('gender')
 	roll = payload.get('roll') if isinstance(payload, dict) else request.POST.get('roll')
+	# accept new fields if provided
+	register_no = payload.get('register_no') if isinstance(payload, dict) else request.POST.get('register_no')
+	section = payload.get('section') if isinstance(payload, dict) else request.POST.get('section')
 	parent = payload.get('parent') if isinstance(payload, dict) else request.POST.get('parent')
 	active = payload.get('active') if isinstance(payload, dict) else request.POST.get('active')
 
@@ -441,14 +467,17 @@ def student_register_ajax(request):
 	except Exception:
 		initial_balance = Decimal('0.00')
 
-	tag, created = RFIDTag.objects.get_or_create(uid=uid)
-	tag.assigned = bool(active) if active is not None else True
-	tag.save()
+	tag = None
+	if uid:
+		uid = str(uid).strip()
+		tag, created = RFIDTag.objects.get_or_create(uid=uid)
+		tag.assigned = bool(active) if active is not None else True
+		tag.save()
 
-	# prevent assigning the same RFID tag to multiple students (OneToOne constraint)
-	existing_student = Student.objects.filter(rfid_tag=tag).first()
-	if existing_student:
-		return JsonResponse({'status': 'error', 'message': f'RFID tag {tag.uid} already assigned to {existing_student.name}.'}, status=400)
+		# prevent assigning the same RFID tag to multiple students (OneToOne constraint)
+		existing_student = Student.objects.filter(rfid_tag=tag).first()
+		if existing_student:
+			return JsonResponse({'status': 'error', 'message': f'RFID tag {tag.uid} already assigned to {existing_student.name}.'}, status=400)
 
 	user_obj = None
 	if username or email:
@@ -464,29 +493,36 @@ def student_register_ajax(request):
 			user_obj.set_unusable_password()
 			user_obj.save()
 
-	student = Student.objects.create(name=name, rfid_tag=tag, user=user_obj)
-	# save metadata fields on student record (grade, roll, parent_contact)
+	student = Student.objects.create(name=name, rfid_tag=tag if tag is not None else None, user=user_obj)
+	# save metadata fields on student record (grade, roll/register_no, parent_contact/section)
 	if grade:
 		student.grade = grade
-	if roll:
+	if gender:
+		student.gender = gender
+	if register_no:
+		student.roll = register_no
+	elif roll:
 		student.roll = roll
-	if parent:
+	if section:
+		student.parent_contact = section
+	elif parent:
 		student.parent_contact = parent
 	student.save()
 	acct = Account.objects.create(student=student, balance=initial_balance)
 
-	# attach extra metadata to response (grade, roll, parent) even if not stored in model
+	# attach extra metadata to response (grade, roll/register_no, section/parent) even if not stored in model
 	data = {
 		'id': student.id,
 		'name': student.name,
-		'rfidUid': tag.uid,
+		'rfidUid': tag.uid if tag is not None else '',
 		'balance': float(acct.balance),
 		'active': bool(tag.assigned),
 		'username': user_obj.username if user_obj else None,
 		'email': user_obj.email if user_obj else None,
 		'grade': student.grade,
-		'roll': student.roll,
-		'parent': student.parent_contact,
+		'gender': student.gender,
+		'register_no': student.roll,
+		'section': student.parent_contact,
 	}
 	return JsonResponse({'status': 'ok', 'student': data}, status=201)
 
@@ -514,7 +550,10 @@ def student_update_ajax(request):
 	email = payload.get('email')
 	balance = payload.get('balance')
 	grade = payload.get('grade')
+	gender = payload.get('gender')
 	roll = payload.get('roll')
+	register_no = payload.get('register_no')
+	section = payload.get('section')
 	parent = payload.get('parent')
 
 	if name:
@@ -553,9 +592,16 @@ def student_update_ajax(request):
 	# update other metadata
 	if grade is not None:
 		student.grade = grade or None
-	if roll is not None:
+	if gender is not None:
+		student.gender = gender or None
+	# map incoming fields to existing model fields
+	if register_no is not None:
+		student.roll = register_no or None
+	elif roll is not None:
 		student.roll = roll or None
-	if parent is not None:
+	if section is not None:
+		student.parent_contact = section or None
+	elif parent is not None:
 		student.parent_contact = parent or None
 
 	student.save()
@@ -583,8 +629,9 @@ def student_update_ajax(request):
 		'username': student.user.username if getattr(student, 'user', None) else None,
 		'email': student.user.email if getattr(student, 'user', None) else None,
 		'grade': student.grade,
-		'roll': student.roll,
-		'parent': student.parent_contact,
+		'gender': student.gender,
+		'register_no': student.roll,
+		'section': student.parent_contact,
 	}
 	return JsonResponse({'status': 'ok', 'student': data})
 
@@ -682,8 +729,10 @@ def api_dashboard_data(request):
 			'username': s.user.username if getattr(s, 'user', None) else None,
 			'email': s.user.email if getattr(s, 'user', None) else None,
 			'grade': s.grade,
-			'roll_id': s.roll,
-			'parent_contact': s.parent_contact,
+			# expose new keys expected by frontend; map to existing fields until DB migration
+			'gender': s.gender,
+			'register_no': s.roll,
+			'section': s.parent_contact,
 		})
 
 	recent_qs = RideLog.objects.select_related('student').order_by('-timestamp')[:50]
@@ -742,8 +791,216 @@ def api_unregistered_tags_delete(request):
 			return JsonResponse({'status': 'ok', 'message': 'Tag deleted'})
 		except UnregisteredTag.DoesNotExist:
 			return JsonResponse({'status': 'error', 'message': 'Tag not found'}, status=404)
+
 	else:
 		return JsonResponse({'status': 'error', 'message': 'ID or clear_all required'}, status=400)
+
+
+@require_http_methods(["POST"])
+@login_required
+def upload_students_excel(request):
+	"""POST /api/upload-students/ - upload .xlsx and create/update student records.
+
+		Expected header columns (case-insensitive):
+			name (required), uid (optional)
+			username, email, balance, grade, roll, parent, active
+	"""
+	f = request.FILES.get('file')
+	if not f:
+		return JsonResponse({'status': 'error', 'message': 'No file uploaded'}, status=400)
+	try:
+		wb = openpyxl.load_workbook(filename=f, read_only=True, data_only=True)
+		ws = wb.active
+		rows = list(ws.iter_rows(values_only=True))
+		if not rows:
+			return JsonResponse({'status': 'error', 'message': 'Excel file is empty'}, status=400)
+
+		# normalize headers: lower-case and strip non-alphanumeric characters
+		def _norm(s):
+			return re.sub(r'[^a-z0-9]', '', str(s).strip().lower()) if s is not None else ''
+		# find the header row: some files include a title row before the actual header
+		header_row_index = 0
+		possible_markers = ('name', 'fullname', 'rfid', 'uid')
+		for idx, r in enumerate(rows[:5]):
+			# look only at the first few rows for header
+			normalized_cells = [ _norm(c) for c in r ]
+			if any(any(marker in (cell or '') for cell in normalized_cells) for marker in possible_markers):
+				header_row_index = idx
+				break
+		header = [ _norm(c) for c in rows[header_row_index] ]
+		col_index = {name: idx for idx, name in enumerate(header)}
+
+		if header_row_index + 1 >= len(rows):
+			return JsonResponse({'status': 'error', 'message': 'Excel file must have a header row and at least one data row'}, status=400)
+
+		created = 0
+		updated = 0
+		errors = []
+
+		for i, row in enumerate(rows[header_row_index+1:], start=header_row_index+2):
+			try:
+				def cell(key):
+					k = _norm(key)
+					idx = col_index.get(k)
+					# tolerant matching: if exact normalized key missing, match when key is substring of header or vice-versa
+					if idx is None:
+						for hname, hidx in col_index.items():
+							if not hname:
+								continue
+							if k == hname or k in hname or hname in k:
+								idx = hidx
+								break
+					return row[idx] if idx is not None and idx < len(row) else None
+
+				name = cell('name') or cell('full name') or cell('fullname')
+				uid = cell('uid') or cell('rfid') or cell('rfid uid')
+				if not name:
+					errors.append({'row': i, 'message': 'Missing name'})
+					continue
+
+				username = cell('username')
+				email = cell('email')
+				balance = cell('balance')
+				grade = cell('grade') or cell('class')
+				roll = cell('roll')
+				# new optional columns we accept but map to existing model fields for now
+				register_no = cell('register_no') or cell('register no') or cell('regno')
+				section = cell('section')
+				gender = cell('gender')
+				parent = cell('parent') or cell('parent contact')
+				active = cell('active')
+
+				name = str(name).strip()
+				tag = None
+				if uid is not None and str(uid).strip() != '':
+					uid = str(uid).strip()
+					tag, _ = RFIDTag.objects.get_or_create(uid=uid)
+					if active is None:
+						tag.assigned = True
+					else:
+						a = str(active).strip().lower()
+						tag.assigned = not (a in ('0', 'false', 'no', 'n', ''))
+					tag.save()
+					student = Student.objects.filter(rfid_tag=tag).first()
+				else:
+					# no UID provided; try to find existing student by name
+					student = Student.objects.filter(name__iexact=name).first()
+				user_obj = None
+				if student:
+					student.name = name
+					if grade is not None: student.grade = str(grade)
+					# prefer register_no if provided, otherwise fall back to roll
+					if register_no is not None:
+						student.roll = str(register_no)
+					elif roll is not None:
+						student.roll = str(roll)
+					# map section into parent_contact temporarily if provided
+					if section is not None:
+						student.parent_contact = str(section)
+					elif parent is not None:
+						student.parent_contact = str(parent)
+					if gender is not None:
+						student.gender = str(gender)
+					student.save()
+					updated += 1
+				else:
+					if username or email:
+						uname = username or (str(email).split('@')[0] if email and '@' in str(email) else None)
+						if uname:
+							base = uname
+							suffix = 0
+							while User.objects.filter(username=uname).exists():
+								suffix += 1
+								uname = f"{base}{suffix}"
+							user_obj = User.objects.create(username=uname, email=email or '')
+							user_obj.set_unusable_password()
+							user_obj.save()
+					# map register_no -> roll and section -> parent_contact for now
+					student = Student.objects.create(
+						name=name,
+						rfid_tag=tag if tag is not None else None,
+						user=user_obj,
+						grade=grade or None,
+						gender=(str(gender) if gender is not None else None),
+						roll=(str(register_no) if register_no is not None else (str(roll) if roll is not None else None)),
+						parent_contact=(str(section) if section is not None else (str(parent) if parent is not None else None)),
+					)
+					created += 1
+
+				try:
+					acct = Account.objects.get(student=student)
+				except Account.DoesNotExist:
+					acct = Account.objects.create(student=student, balance=0)
+				# set balance only if provided; accounts default to 0 on creation
+				if balance not in (None, ''):
+					try:
+						acct.balance = Decimal(str(balance))
+						acct.save()
+					except Exception:
+						errors.append({'row': i, 'message': 'Invalid balance value'})
+
+			except Exception as e:
+				errors.append({'row': i, 'message': str(e)})
+
+		return JsonResponse({'status': 'ok', 'created': created, 'updated': updated, 'errors': errors})
+
+
+	except Exception as e:
+		return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@require_http_methods(["GET"])
+@login_required
+def export_students_excel(request):
+	"""GET /api/export-students/ - download a .xlsx backup of all student records."""
+	wb = openpyxl.Workbook()
+	ws = wb.active
+	ws.title = 'Students'
+
+	headers = [
+		'Full name',
+		'RFID UID',
+		'Username',
+		'Email',
+		'Balance',
+		'Class',
+		'Gender',
+		'Register No',
+		'Section',
+		'Active',
+	]
+	ws.append(headers)
+
+	students_qs = Student.objects.select_related('rfid_tag', 'user').order_by('name')
+	for student in students_qs:
+		account = Account.objects.filter(student=student).first()
+		ws.append([
+			student.name,
+			student.rfid_tag.uid if student.rfid_tag else '',
+			student.user.username if student.user else '',
+			student.user.email if student.user else '',
+			float(account.balance) if account else 0,
+			student.grade or '',
+			student.gender or '',
+			student.roll or '',
+			student.parent_contact or '',
+			'Yes' if student.rfid_tag and student.rfid_tag.assigned else 'No',
+		])
+
+	for column_cells in ws.columns:
+		max_length = max(len(str(cell.value or '')) for cell in column_cells)
+		ws.column_dimensions[column_cells[0].column_letter].width = min(max(max_length + 2, 12), 32)
+
+	output = BytesIO()
+	wb.save(output)
+	output.seek(0)
+	filename = f"students-backup-{timezone.localtime().strftime('%Y-%m-%d_%H-%M-%S')}.xlsx"
+	response = HttpResponse(
+		output.getvalue(),
+		content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+	)
+	response['Content-Disposition'] = f'attachment; filename="{filename}"'
+	return response
 
 
 # ----------------------------------------------------------------

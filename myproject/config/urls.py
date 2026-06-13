@@ -4,6 +4,8 @@ from . import views
 app_name = 'config'
 
 urlpatterns = [
+    path('favicon.ico', views.logo_png, name='favicon_ico'),
+    path('static/img/logo.png', views.logo_png, name='logo_png_fallback'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('', views.dashboard, name='dashboard'),
@@ -23,6 +25,8 @@ urlpatterns = [
     path('api/unregistered-tags/', views.api_unregistered_tags, name='api_unregistered_tags'),
     path('api/unregistered-tags/count/', views.api_unregistered_tags_count, name='api_unregistered_tags_count'),
     path('api/unregistered-tags/delete/', views.api_unregistered_tags_delete, name='api_unregistered_tags_delete'),
+    path('api/upload-students/', views.upload_students_excel, name='api_upload_students'),
+    path('api/export-students/', views.export_students_excel, name='api_export_students'),
     path('api/health/', views.api_health, name='api_health'),
     path('api/bus/sync/', views.api_bus_sync, name='api_bus_sync'),
     path('api/bus/transaction/', views.api_bus_transaction, name='api_bus_transaction'),

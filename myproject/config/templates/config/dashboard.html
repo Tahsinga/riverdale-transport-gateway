@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% load static %}
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -6,6 +7,7 @@
   <title>Riverdale Academy</title>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="icon" type="image/png" href="{% static 'img/logo.png' %}">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -39,6 +41,37 @@
       position: relative;
     }
 
+    /* Blue themed scrollbars for all dashboard scroll areas */
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: #ffffff var(--surface);
+    }
+
+    *::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    *::-webkit-scrollbar-track {
+      background: linear-gradient(180deg, #0b1220 0%, var(--surface) 100%);
+      border-radius: 999px;
+    }
+
+    *::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #38bdf8 0%, #2563eb 58%, #1e3a8a 100%);
+      border: 2px solid var(--surface);
+      border-radius: 999px;
+      box-shadow: 0 0 8px rgba(37, 99, 235, 0.45);
+    }
+
+    *::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(180deg, #7dd3fc 0%, #3b82f6 55%, #1d4ed8 100%);
+    }
+
+    *::-webkit-scrollbar-corner {
+      background: var(--surface);
+    }
+
     body::before,
     body::after {
       content: none;
@@ -65,7 +98,7 @@
       flex-direction: column;
       position: fixed;
       top: 0; left: 0; bottom: 0;
-      z-index: 100;
+      z-index: 100; /* Base navigation layer */
     }
 
     .sidebar-logo {
@@ -80,6 +113,16 @@
       background: linear-gradient(135deg, var(--red) 0%, var(--red-dark) 100%);
       border-radius: 5px;
       display: flex; align-items: center; justify-content: center;
+    }
+    .logo-img {
+      width: 42px;
+      height: 42px;
+      object-fit: contain;
+      border-radius: 8px;
+      background: #fff;
+      padding: 2px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+      flex-shrink: 0;
     }
 
     .logo-text { font-size: 18px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
@@ -142,7 +185,7 @@
       border-bottom: 1px solid var(--border);
       padding: 16px 32px;
       display: flex; align-items: center; justify-content: space-between;
-      position: sticky; top: 0; z-index: 40;
+      position: sticky; top: 0; z-index: 50; /* Sticky header layer */
     }
 
     .topbar-title { font-size: 20px; font-weight: 600; color: var(--text); }
@@ -333,22 +376,48 @@
       border-collapse: collapse;
       font-size: 13px;
       color: var(--text);
+      table-layout: auto;
     }
     .recent-table th, .recent-table td {
       text-align: left;
-      padding: 14px 18px;
+      padding: 12px 14px;
       border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+      min-width: max-content;
     }
     .recent-table th {
       font-weight: 600;
       color: var(--muted);
-      font-size: 11px;
+      font-size: 12px;
       letter-spacing: 0.3px;
       text-transform: uppercase;
+      background: var(--surface2);
+      position: sticky;
+      top: 0;
+      z-index: 5; /* Background overlay */
     }
-    .recent-table td { color: var(--text); }
+    .recent-table td { 
+      color: var(--text); 
+      font-size: 13px;
+    }
+    
+    /* Make all table containers horizontally scrollable */
+    .panel-body > div {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
     .amount-negative { color: #f97676; font-weight: 600; }
     .amount-positive { color: var(--brand-red); font-weight: 600; }
+
+    /* Table container for modals with horizontal scrolling */
+    .modal-body > div > table.recent-table {
+      min-width: 100%;
+    }
+    
+    .modal-body > div {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
 
     .student-badge {
       background: rgba(255,255,255,0.04);
@@ -471,7 +540,7 @@
     @media (max-width: 600px) {
       /* Main layout */
       .dash { flex-direction: column; }
-      .sidebar { position: fixed; bottom: 0; left: 0; right: 0; width: 100%; height: 60px; flex-direction: row; top: auto; z-index: 100; border-right: none; border-top: 1px solid var(--border); }
+      .sidebar { position: fixed; bottom: 0; left: 0; right: 0; width: 100%; height: 60px; flex-direction: row; top: auto; z-index: 100; border-right: none; border-top: 1px solid var(--border); } /* Mobile nav */
       .sidebar-logo { display: none; }
       .sidebar-section { padding: 8px 4px; }
       .sidebar-label { display: none; }
@@ -578,15 +647,16 @@
     /* Modal overlays (dashboard themed) */
     .modal-overlay {
       position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
-      background: rgba(10,16,30,0.72); z-index: 2200; padding: 20px;
+      background: rgba(10,16,30,0.72); padding: 20px;
       backdrop-filter: blur(6px);
       border-radius: 5px;
+      isolation: isolate;
     }
     .modal-overlay.open { display: flex; }
     .modal-card {
       background: rgba(24,28,38,0.98);
       border-radius: 5px;
-      width: min(900px, 92%);
+      width: min(1200px, 95%);
       min-height: 50vh;
       max-height: 92vh;
       overflow: auto;
@@ -594,6 +664,7 @@
       border: 1px solid rgba(255,255,255,0.08);
       font-family: 'Sora', 'Roboto', sans-serif;
       color: #f0f4fa;
+      z-index: 0; /* Default layer */
     }
     .modal-header {
       padding: 18px 24px 12px 24px;
@@ -640,9 +711,7 @@
   <aside class="sidebar">
     <div class="sidebar-logo">
       <div class="logo-mark">
-        <div class="logo-icon">
-          <i class="fas fa-id-card" style="color: white; font-size: 18px;"></i>
-        </div>
+        <img class="logo-img" src="{% static 'img/logo.png' %}" alt="Riverdale Academy logo">
         <div>
           <div class="logo-text">RIVERDALE ACADEMY</div>
           <div class="logo-sub">RFID Payment Hub</div>
@@ -651,7 +720,7 @@
     </div>
 
     <!-- Edit Student Modal -->
-    <div id="modal-edit-student" class="modal-overlay" aria-hidden="true">
+    <div id="modal-edit-student" class="modal-overlay" aria-hidden="true" style="z-index: 2500; /* Edit Student Modal */">
       <div class="modal-card">
         <div class="modal-header">
           <strong>Edit Student</strong>
@@ -666,11 +735,39 @@
             <div class="mb-2"><label class="form-label">Username</label><input id="editStudentUsername" class="form-control"></div>
             <div class="mb-2"><label class="form-label">Email</label><input id="editStudentEmail" class="form-control"></div>
             <div class="mb-2"><label class="form-label">Balance (USD)</label><input id="editStudentBalance" class="form-control" type="number" step="0.01"></div>
-            <div class="mb-2"><label class="form-label">Class / Grade</label><input id="editStudentGrade" class="form-control"></div>
-            <div class="mb-2"><label class="form-label">Roll / ID</label><input id="editStudentRoll" class="form-control"></div>
-            <div class="mb-2"><label class="form-label">Parent contact</label><input id="editStudentParent" class="form-control"></div>
+            <div class="mb-2"><label class="form-label">Class</label><input id="editStudentGrade" class="form-control"></div>
+            <div class="mb-2"><label class="form-label">Gender</label><input id="editStudentGender" class="form-control"></div>
+            <div class="mb-2"><label class="form-label">Register No</label><input id="editStudentRegisterNo" class="form-control"></div>
+            <div class="mb-2"><label class="form-label">Section</label><input id="editStudentSection" class="form-control"></div>
           </div>
           <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;"><button class="btn btn-secondary" data-close>Cancel</button><button class="btn btn-primary" id="editStudentSubmit">Save</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Assign RFID Tag Modal -->
+    <div id="modal-assign-rfid" class="modal-overlay" aria-hidden="true" style="z-index: 2400; /* Assign RFID Modal */">
+      <div class="modal-card">
+        <div class="modal-header">
+          <strong>Assign RFID Tag</strong>
+          <button class="modal-close" data-close>&times;</button>
+        </div>
+        <div class="modal-body">
+          <div id="assignRfidMsg" style="margin-bottom:10px;color:#666;"></div>
+          <input type="hidden" id="assignRfidStudentId">
+          <div style="margin-bottom:16px;">
+            <label class="form-label"><strong id="assignRfidStudentName">Student Name</strong></label>
+            <div style="font-size:14px;color:#aaa;margin-top:4px;">This student does not have an RFID tag assigned.</div>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">RFID Tag UID</label>
+            <input id="assignRfidUidInput" class="form-control" placeholder="e.g., 611C853D" autofocus>
+            <div style="font-size:12px;color:#aaa;margin-top:4px;">Enter the unique identifier from the RFID tag</div>
+          </div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;">
+            <button class="btn btn-secondary" data-close>Cancel</button>
+            <button class="btn btn-primary" id="assignRfidSubmit">Save RFID Tag</button>
+          </div>
         </div>
       </div>
     </div>
@@ -786,9 +883,9 @@
               <span class="panel-meta">RFID tap transactions</span>
             </div>
             <div class="panel-body" style="padding: 0; max-height: 420px; overflow-y: auto;">
-              <table class="recent-table" id="recentTransactionsTable">
+              <table class="recent-table" id="recentTransactionsTable" style="width:100%; min-width:600px;">
                 <thead>
-                  <tr><th>Student</th><th>Item</th><th>Amount</th><th>Time</th></tr>
+                  <tr><th style="min-width:140px;">Student</th><th style="min-width:140px;">Item</th><th style="min-width:100px;">Amount</th><th style="min-width:120px;">Time</th></tr>
                 </thead>
                 <tbody id="transactionsBody"></tbody>
               </table>
@@ -804,8 +901,8 @@
             </div>
             <div class="panel-body" style="padding: 0; max-height: 420px; overflow-y: auto;">
               <div style="padding:8px;"><input id="studentBalancesSearch" class="form-control" placeholder="Search students by name"></div>
-              <table class="recent-table" style="width:100%">
-                <thead><tr><th>Student</th><th>RFID UID</th><th>Balance</th><th>Status</th></tr></thead>
+              <table class="recent-table" style="width:100%; min-width:600px;">
+                <thead><tr><th style="min-width:140px;">Student</th><th style="min-width:120px;">RFID UID</th><th style="min-width:100px;">Balance</th><th style="min-width:100px;">Status</th></tr></thead>
                 <tbody id="studentBalancesBody"></tbody>
               </table>
             </div>
@@ -814,7 +911,7 @@
       </div>
       
       <!-- Modals (dashboard-themed) -->
-      <div id="modal-students" class="modal-overlay" aria-hidden="true">
+      <div id="modal-students" class="modal-overlay" aria-hidden="true" style="z-index: 1300; /* Students List Modal */">
         <div class="modal-card">
           <div class="modal-header">
             <strong>Students</strong>
@@ -823,23 +920,30 @@
           <div class="modal-body">
             <div style="margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
               <div><small class="text-muted">Manage students and RFID tags</small></div>
-              <button class="btn btn-primary" id="openAddStudentBtn">Add Student</button>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <button class="btn btn-primary" id="openAddStudentBtn">Add Student</button>
+                <a class="btn" id="exportStudentsBtn" href="{% url 'config:api_export_students' %}" style="text-decoration:none;"><i class="fas fa-file-export"></i> Export Students</a>
+                <button class="btn" id="importExcelBtn"><i class="fas fa-file-excel"></i> Import Excel</button>
+                <input type="file" id="studentExcelInput" accept=".xlsx" style="display:none" />
+              </div>
             </div>
+            <div id="excelImportMsg" style="margin-bottom:10px;color:#666;"></div>
             <div style="margin-bottom:8px;"><input id="studentModalSearch" class="form-control" placeholder="Search students by name"></div>
-            <div style="overflow:auto; max-height:56vh;">
-              <table class="recent-table" style="width:100%">
+            <div style="overflow:auto; max-height:56vh; border-radius:8px;">
+              <table class="recent-table" style="width:100%; min-width:1100px;">
                 <thead>
                   <tr>
-                    <th>Full name</th>
-                    <th>RFID UID</th>
-                    <th>Username</th>
-                    <th>Email</th>
-                    <th>Balance</th>
-                    <th>Class / Grade</th>
-                    <th>Roll / ID</th>
-                    <th>Parent contact</th>
-                    <th>Status</th>
-                    <th></th>
+                    <th style="min-width:120px;">Full name</th>
+                    <th style="min-width:110px;">RFID UID</th>
+                    <th style="min-width:110px;">Username</th>
+                    <th style="min-width:140px;">Email</th>
+                    <th style="min-width:80px;">Balance</th>
+                    <th style="min-width:80px;">Class</th>
+                    <th style="min-width:80px;">Gender</th>
+                    <th style="min-width:90px;">Register No</th>
+                    <th style="min-width:80px;">Section</th>
+                    <th style="min-width:80px;">Status</th>
+                    <th style="min-width:60px;"></th>
                   </tr>
                 </thead>
                 <tbody id="modalStudentsBody"></tbody>
@@ -851,7 +955,7 @@
       </div>
       
       <!-- Add Student Modal (dashboard-themed, AJAX) -->
-      <div id="modal-add-student" class="modal-overlay" aria-hidden="true">
+      <div id="modal-add-student" class="modal-overlay" aria-hidden="true" style="z-index: 3000; /* Add Student Modal - Highest */">
         <div class="modal-card">
             <div class="modal-header">
               <strong>Add Student</strong>
@@ -865,19 +969,21 @@
                 <div class="mb-2"><label class="form-label">Username (optional)</label><input id="addStudentUsername" class="form-control" placeholder="schooluser01"></div>
                 <div class="mb-2"><label class="form-label">Email (optional)</label><input id="addStudentEmail" class="form-control" placeholder="parent@example.com"></div>
                 <div class="mb-2"><label class="form-label">Initial balance (USD)</label><input id="addStudentBalance" class="form-control" placeholder="0.00" type="number" step="0.01" min="0"></div>
-                <div class="mb-2"><label class="form-label">Class / Grade</label><input id="addStudentGrade" class="form-control" placeholder="Grade 5 / Class A"></div>
-                <div class="mb-2"><label class="form-label">Roll / ID number</label><input id="addStudentRoll" class="form-control" placeholder="12345"></div>
-                <div class="mb-2"><label class="form-label">Parent contact</label><input id="addStudentParent" class="form-control" placeholder="+1 555 123 4567"></div>
+                <div class="mb-2"><label class="form-label">Class</label><input id="addStudentGrade" class="form-control" placeholder="Class A"></div>
+                <div class="mb-2"><label class="form-label">Gender</label><input id="addStudentGender" class="form-control" placeholder="e.g., Male, Female, Other"></div>
+                <div class="mb-2"><label class="form-label">Register No</label><input id="addStudentRegisterNo" class="form-control" placeholder="e.g., R12345"></div>
+                <div class="mb-2"><label class="form-label">Section</label><input id="addStudentSection" class="form-control" placeholder="e.g., A"></div>
+                <div style="display:flex;align-items:flex-end;justify-content:flex-end;gap:10px;flex-wrap:wrap;padding-bottom:2px;">
+                  <label style="display:flex;align-items:center;gap:8px;margin-right:auto;white-space:nowrap;transform:translateY(-16px);"><input type="checkbox" id="addStudentActive" checked> Active</label>
+                  <button class="btn btn-secondary" data-close>Cancel</button>
+                  <button class="btn btn-primary" id="addStudentSubmit">Register Student</button>
+                </div>
               </div>
-              <div style="display:flex;align-items:center;gap:12px;margin-top:10px;">
-                <label style="display:flex;align-items:center;gap:8px;"><input type="checkbox" id="addStudentActive" checked> Active / Assign card</label>
-              </div>
-              <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;"><button class="btn btn-secondary" data-close>Cancel</button><button class="btn btn-primary" id="addStudentSubmit">Register Student</button></div>
             </div>
           </div>
       </div>
 
-      <div id="modal-payments" class="modal-overlay" aria-hidden="true">
+      <div id="modal-payments" class="modal-overlay" aria-hidden="true" style="z-index: 1400; /* Payments Modal */">
         <div class="modal-card">
           <div class="modal-header">
             <strong>Recent Payments</strong>
@@ -885,8 +991,8 @@
           </div>
           <div class="modal-body">
             <div style="overflow:auto; max-height:64vh;">
-              <table class="recent-table" style="width:100%">
-                <thead><tr><th>Student</th><th>Item</th><th>Amount</th><th>Time</th></tr></thead>
+              <table class="recent-table" style="width:100%; min-width:600px;">
+                <thead><tr><th style="min-width:140px;">Student</th><th style="min-width:140px;">Item</th><th style="min-width:100px;">Amount</th><th style="min-width:120px;">Time</th></tr></thead>
                 <tbody id="modalPaymentsBody"></tbody>
               </table>
             </div>
@@ -894,11 +1000,11 @@
         </div>
       </div>
 
-      <div id="modal-topup" class="modal-overlay" aria-hidden="true">
+      <div id="modal-topup" class="modal-overlay" aria-hidden="true" style="z-index: 1500; /* Top Up Modal */">
         <div class="modal-card" style="max-width:900px;display:flex;flex-direction:row;gap:0;padding:0;height:520px;">
           <!-- Left Panel: Student List -->
           <div style="width:320px;max-height:520px;overflow-y:auto;border-right:1px solid #333;background:#0f0f0f;">
-            <div style="padding:14px;background:#181818;border-bottom:1px solid #333;font-weight:600;position:sticky;top:0;z-index:10;">
+            <div style="padding:14px;background:#181818;border-bottom:1px solid #333;font-weight:600;position:sticky;top:0;z-index:60; /* Sticky header within modal */">
               <i class="fas fa-users"></i> Select Student
             </div>
             <div style="padding:8px 4px;">
@@ -928,7 +1034,7 @@
       </div>
       </div>
 
-      <div id="modal-revenue" class="modal-overlay" aria-hidden="true">
+      <div id="modal-revenue" class="modal-overlay" aria-hidden="true" style="z-index: 1600; /* Revenue Modal */">
         <div class="modal-card">
           <div class="modal-header">
             <strong>Revenue</strong>
@@ -940,7 +1046,7 @@
         </div>
       </div>
 
-      <div id="modal-tags" class="modal-overlay" aria-hidden="true">
+      <div id="modal-tags" class="modal-overlay" aria-hidden="true" style="z-index: 1700; /* RFID Tags Modal */">
         <div class="modal-card">
           <div class="modal-header">
             <strong>RFID Tags</strong>
@@ -952,7 +1058,7 @@
         </div>
       </div>
 
-      <div id="modal-unregistered-tags" class="modal-overlay" aria-hidden="true">
+      <div id="modal-unregistered-tags" class="modal-overlay" aria-hidden="true" style="z-index: 1800; /* Unregistered Tags Modal */">
         <div class="modal-card">
           <div class="modal-header">
             <strong><i class="fas fa-exclamation-triangle" style="color: #ff6b6b; margin-right: 8px;"></i>Unregistered RFID Tags</strong>
@@ -966,12 +1072,12 @@
               </button>
             </div>
             <div style="overflow: auto; max-height: 56vh;">
-              <table class="recent-table" style="width: 100%;">
+              <table class="recent-table" style="width: 100%; min-width: 600px;">
                 <thead>
                   <tr>
-                    <th>RFID Tag UID</th>
-                    <th>Tapped At</th>
-                    <th>Action</th>
+                    <th style="min-width: 180px;">RFID Tag UID</th>
+                    <th style="min-width: 160px;">Tapped At</th>
+                    <th style="min-width: 100px;">Action</th>
                   </tr>
                 </thead>
                 <tbody id="unregisteredTagsBody">
@@ -1046,7 +1152,8 @@ function renderTopupStudentList(filter = "") {
         </div>
         ${s.email?`<div style="color:#888;font-size:11px;margin-bottom:2px;"><i class="fas fa-envelope"></i> ${s.email}</div>`:''}
         ${s.grade?`<div style="color:#888;font-size:11px;margin-bottom:2px;"><i class="fas fa-book"></i> ${s.grade}</div>`:''}
-        ${s.parent_contact?`<div style="color:#888;font-size:11px;"><i class="fas fa-phone"></i> ${s.parent_contact}</div>`:''}
+        ${s.register_no?`<div style="color:#888;font-size:11px;"><i class="fas fa-hashtag"></i> ${s.register_no}</div>`:''}
+        ${s.section?`<div style="color:#888;font-size:11px;"><i class="fas fa-layer-group"></i> ${s.section}</div>`:''}
       </div>`
     ).join("");
   }
@@ -1071,10 +1178,11 @@ function selectTopupStudent(uid, name) {
           <span style="color:#aaa;">Current Balance</span>
           <div style="color:#27ae60;font-weight:700;margin-top:4px;font-size:13px;">$${s.balance!=null?Number(s.balance).toFixed(2):"0.00"}</div>
         </div>
-        ${s.grade?`<div style="background:rgba(240,165,0,0.1);padding:8px;border-radius:6px;"><span style="color:#aaa;">Class/Grade</span><div style="color:#f0f0f0;font-weight:500;margin-top:4px;">${s.grade}</div></div>`:''}
-        ${s.roll_id?`<div style="background:rgba(240,165,0,0.1);padding:8px;border-radius:6px;"><span style="color:#aaa;">Roll/ID</span><div style="color:#f0f0f0;font-weight:500;margin-top:4px;">${s.roll_id}</div></div>`:''}
+        ${s.grade?`<div style="background:rgba(240,165,0,0.1);padding:8px;border-radius:6px;"><span style="color:#aaa;">Class</span><div style="color:#f0f0f0;font-weight:500;margin-top:4px;">${s.grade}</div></div>`:''}
+        ${s.gender?`<div style="background:rgba(240,165,0,0.1);padding:8px;border-radius:6px;"><span style="color:#aaa;">Gender</span><div style="color:#f0f0f0;font-weight:500;margin-top:4px;">${s.gender}</div></div>`:''}
         ${s.email?`<div style="background:rgba(70,130,180,0.1);padding:8px;border-radius:6px;grid-column:1/-1;"><span style="color:#aaa;">Email</span><div style="color:#f0f0f0;font-weight:500;margin-top:4px;word-break:break-all;">${s.email}</div></div>`:''}
-        ${s.parent_contact?`<div style="background:rgba(70,130,180,0.1);padding:8px;border-radius:6px;grid-column:1/-1;"><span style="color:#aaa;">Parent Contact</span><div style="color:#f0f0f0;font-weight:500;margin-top:4px;">${s.parent_contact}</div></div>`:''}
+        ${s.register_no?`<div style="background:rgba(70,130,180,0.1);padding:8px;border-radius:6px;grid-column:1/-1;"><span style="color:#aaa;">Register No</span><div style="color:#f0f0f0;font-weight:500;margin-top:4px;">${s.register_no}</div></div>`:''}
+        ${s.section?`<div style="background:rgba(70,130,180,0.06);padding:8px;border-radius:6px;grid-column:1/-1;margin-top:6px;"><span style="color:#aaa;">Section</span><div style="color:#f0f0f0;font-weight:500;margin-top:4px;">${s.section}</div></div>`:''}
       </div>
     `;
   }
@@ -1198,13 +1306,16 @@ document.addEventListener("DOMContentLoaded", function() {
   async function fetchDashboardData() {
     try {
       const res = await fetch('/api/dashboard-data/');
-      if (!res.ok) return;
+      if (!res.ok) return false;
       const j = await res.json();
       students = j.students || [];
       transactions = j.transactions || [];
       updateDashboard();
+      renderStudentBalances();
+      return true;
     } catch (e) {
       // ignore fetch errors
+      return false;
     }
   }
 
@@ -1219,12 +1330,13 @@ document.addEventListener("DOMContentLoaded", function() {
       const email = document.getElementById('editStudentEmail').value.trim();
       const balance = document.getElementById('editStudentBalance').value.trim();
       const grade = document.getElementById('editStudentGrade').value.trim();
-      const roll = document.getElementById('editStudentRoll').value.trim();
-      const parent = document.getElementById('editStudentParent').value.trim();
+      const gender = document.getElementById('editStudentGender').value.trim();
+      const registerNo = document.getElementById('editStudentRegisterNo').value.trim();
+      const section = document.getElementById('editStudentSection').value.trim();
       const msg = document.getElementById('editStudentMsg');
       msg.innerText = '';
       if (!id) { msg.innerText = 'Missing student id'; return; }
-      const payload = { id, name, uid, username, email, balance, grade, roll, parent };
+      const payload = { id, name, uid, username, email, balance, grade, gender, register_no: registerNo, section };
       try {
         const resp = await fetch('{% url "config:student_update_ajax" %}', {
           method: 'POST',
@@ -1484,10 +1596,25 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   // Modal helpers
+  const MODAL_BASE_Z_INDEX = 3000;
+
+  function getHighestOpenModalZIndex() {
+    return Array.from(document.querySelectorAll('.modal-overlay.open')).reduce((highest, modal) => {
+      const zIndex = Number.parseInt(window.getComputedStyle(modal).zIndex, 10);
+      return Number.isFinite(zIndex) ? Math.max(highest, zIndex) : highest;
+    }, MODAL_BASE_Z_INDEX);
+  }
+
   function openModal(id) {
     if (!id || id === 'modal-none') return;
     const el = document.getElementById(id);
     if (!el) return;
+    // Some modals are declared inside the sidebar. A fixed element inside a
+    // z-indexed parent is still limited by that parent's stacking context, so
+    // append the overlay to <body> before opening it. This makes secondary
+    // popups (Assign RFID/Edit/Add Student) appear above the Students popup.
+    if (el.parentElement !== document.body) document.body.appendChild(el);
+    el.style.zIndex = String(getHighestOpenModalZIndex() + 10);
     el.classList.add('open'); el.setAttribute('aria-hidden','false');
     document.body.style.overflow = 'hidden';
     // render dynamic content
@@ -1502,7 +1629,7 @@ document.addEventListener("DOMContentLoaded", function() {
   function closeModal(el) {
     if (!el) return;
     el.classList.remove('open'); el.setAttribute('aria-hidden','true');
-    document.body.style.overflow = '';
+    if (!document.querySelector('.modal-overlay.open')) document.body.style.overflow = '';
   }
 
   // render functions for modals
@@ -1521,15 +1648,92 @@ document.addEventListener("DOMContentLoaded", function() {
         <td>${s.email || '—'}</td>
         <td style="font-weight:600;">$${Number(s.balance||0).toFixed(2)}</td>
         <td>${s.grade || '—'}</td>
-        <td>${s.roll || '—'}</td>
-        <td>${s.parent || '—'}</td>
-        <td>${s.active ? '<span style="color:var(--brand-red);">Active</span>' : 'Inactive'}</td>
+        <td>${s.gender || '—'}</td>
+        <td>${s.register_no || '—'}</td>
+        <td>${s.section || '—'}</td>
+        <td><button class="btn" style="padding:6px 12px;font-size:12px;${s.active ? 'background:rgba(39,174,96,0.15);color:#27ae60;border-color:#27ae60;' : 'background:rgba(200,16,46,0.15);color:#c8102e;border-color:#c8102e;'}" onclick="toggleStudentStatus(${s.id}, ${s.active})">${s.active ? 'Active' : 'Inactive'}</button></td>
         <td style="text-align:right; width:96px; display:flex; gap:6px; justify-content:flex-end;">
           <button class="btn" onclick="openEditStudent(${s.id})" title="Edit">✎</button>
           <button class="btn" style="background:#f8d7da;color:#842029;border-color:transparent;" onclick="deleteStudentConfirm(${s.id}, '${s.name.replace("'","\'" )}')" title="Delete">🗑</button>
         </td>
       </tr>
     `}).join('');
+  }
+
+  async function toggleStudentStatus(studentId, currentActive) {
+    try {
+      const resp = await fetch('{% url "config:toggle_active" %}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+        body: JSON.stringify({ id: studentId })
+      });
+      const data = await resp.json();
+      if (resp.ok && data.status === 'ok') {
+        // Update local student data
+        const s = students.find(st => st.id === studentId);
+        if (s) {
+          s.active = data.active;
+          renderStudentsModal();
+          updateDashboard();
+        }
+      } else if (data.message && data.message.includes('no RFID tag')) {
+        // Student has no RFID tag - open assignment modal
+        const s = students.find(st => st.id === studentId);
+        if (s) {
+          document.getElementById('assignRfidStudentId').value = studentId;
+          document.getElementById('assignRfidStudentName').textContent = s.name;
+          document.getElementById('assignRfidUidInput').value = '';
+          document.getElementById('assignRfidMsg').innerHTML = '';
+          openModal('modal-assign-rfid');
+        }
+      } else {
+        alert(data.message || 'Failed to update student status');
+      }
+    } catch (err) {
+      alert('Network error while updating status');
+    }
+  }
+
+  // Handle RFID tag assignment
+  const assignRfidSubmit = document.getElementById('assignRfidSubmit');
+  if (assignRfidSubmit) {
+    assignRfidSubmit.addEventListener('click', async () => {
+      const studentId = document.getElementById('assignRfidStudentId').value;
+      const uid = document.getElementById('assignRfidUidInput').value.trim();
+      const msg = document.getElementById('assignRfidMsg');
+      
+      if (!uid) {
+        msg.innerHTML = '<span style="color:#e25c5c;">Please enter an RFID tag UID</span>';
+        return;
+      }
+      
+      msg.innerHTML = 'Assigning...';
+      
+      try {
+        const resp = await fetch('{% url "config:student_update_ajax" %}', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+          body: JSON.stringify({ id: studentId, uid: uid })
+        });
+        
+        const data = await resp.json();
+        if (resp.ok && data.status === 'ok') {
+          // Update local student data
+          const idx = students.findIndex(s => s.id === data.student.id);
+          if (idx >= 0) students[idx] = data.student; else students.unshift(data.student);
+          renderStudentsModal();
+          updateDashboard();
+          msg.innerHTML = '<span style="color:#27ae60;">✓ RFID tag assigned successfully!</span>';
+          setTimeout(() => {
+            closeModal(document.getElementById('modal-assign-rfid'));
+          }, 1000);
+        } else {
+          msg.innerHTML = `<span style="color:#e25c5c;">${data.message || 'Failed to assign RFID tag'}</span>`;
+        }
+      } catch (err) {
+        msg.innerHTML = `<span style="color:#e25c5c;">Network error: ${err.message}</span>`;
+      }
+    });
   }
 
   function deleteStudentConfirm(id, name) {
@@ -1570,8 +1774,9 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById('editStudentEmail').value = s.email || '';
     document.getElementById('editStudentBalance').value = s.balance || '';
     document.getElementById('editStudentGrade').value = s.grade || '';
-    document.getElementById('editStudentRoll').value = s.roll || '';
-    document.getElementById('editStudentParent').value = s.parent || '';
+    document.getElementById('editStudentGender').value = s.gender || '';
+    document.getElementById('editStudentRegisterNo').value = s.register_no || '';
+    document.getElementById('editStudentSection').value = s.section || '';
     openModal('modal-edit-student');
   }
 
@@ -1598,8 +1803,9 @@ document.addEventListener("DOMContentLoaded", function() {
     const username = s.username || s.user || '—';
     const email = s.email || s.email || '—';
     const grade = s.grade || '—';
-    const roll = s.roll || '—';
-    const parent = s.parent || '—';
+    const gender = s.gender || '—';
+    const registerNo = s.register_no || '—';
+    const section = s.section || '—';
     el.innerHTML = `
       <div class="panel" style="padding:12px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><strong>${s.name}</strong><small>${s.rfidUid || ''}</small></div>
@@ -1609,8 +1815,9 @@ document.addEventListener("DOMContentLoaded", function() {
           <div><div class="label">Username</div><div class="value">${username}</div></div>
           <div><div class="label">Email</div><div class="value">${email}</div></div>
           <div><div class="label">Grade / Class</div><div class="value">${grade}</div></div>
-          <div><div class="label">Roll / ID</div><div class="value">${roll}</div></div>
-          <div style="grid-column:1 / -1;"><div class="label">Parent Contact</div><div class="value">${parent}</div></div>
+          <div><div class="label">Gender</div><div class="value">${gender}</div></div>
+          <div><div class="label">Register No</div><div class="value">${registerNo}</div></div>
+          <div><div class="label">Section</div><div class="value">${section}</div></div>
         </div>
       </div>
     `;
@@ -2103,13 +2310,14 @@ document.addEventListener("DOMContentLoaded", function() {
       const email = document.getElementById('addStudentEmail').value.trim();
       const balance = document.getElementById('addStudentBalance').value.trim();
       const grade = document.getElementById('addStudentGrade').value.trim();
-      const roll = document.getElementById('addStudentRoll').value.trim();
-      const parent = document.getElementById('addStudentParent').value.trim();
+      const gender = document.getElementById('addStudentGender').value.trim();
+      const registerNo = document.getElementById('addStudentRegisterNo').value.trim();
+      const section = document.getElementById('addStudentSection').value.trim();
       const active = document.getElementById('addStudentActive').checked;
       const msg = document.getElementById('addStudentMsg');
       msg.innerText = '';
       if (!name || !uid) { msg.innerText = 'Name and UID are required.'; return; }
-      const payload = { name, uid, username, email, balance, grade, roll, parent, active };
+      const payload = { name, uid, username, email, balance, grade, gender, register_no: registerNo, section, active };
       try {
         const resp = await fetch('{% url "config:student_register_ajax" %}', {
           method: 'POST',
@@ -2133,6 +2341,48 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   updateDate();
+
+// Excel import handling: send .xlsx file to server API
+const importBtn = document.getElementById('importExcelBtn');
+const excelInput = document.getElementById('studentExcelInput');
+const excelMsg = document.getElementById('excelImportMsg');
+if (importBtn && excelInput) {
+  importBtn.addEventListener('click', () => excelInput.click());
+  excelInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    excelMsg.innerText = '';
+    if (!file) return;
+    const fd = new FormData();
+    fd.append('file', file);
+    try {
+      excelMsg.innerText = 'Uploading and processing...';
+      const res = await fetch('/api/upload-students/', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': getCookie('csrftoken') },
+        body: fd
+      });
+      const data = await res.json();
+      if (res.ok) {
+        excelMsg.innerHTML = `✅ Imported: ${data.created || 0} created, ${data.updated || 0} updated.`;
+        // refresh dashboard data via AJAX, then redraw the currently open Students popup
+        await fetchDashboardData();
+        renderStudentsModal();
+        renderStudentBalances();
+        if (typeof renderTopupStudentList === 'function') renderTopupStudentList();
+        if (document.getElementById('rfidLiveMessage')) {
+          document.getElementById('rfidLiveMessage').innerText = `✅ Excel import complete: ${data.created || 0} created, ${data.updated || 0} updated.`;
+        }
+      } else {
+        excelMsg.innerText = data.message || 'Import failed';
+      }
+    } catch (err) {
+      excelMsg.innerText = 'Network error: ' + err.message;
+    } finally {
+      excelInput.value = '';
+      setTimeout(() => { if (excelMsg) excelMsg.innerText = ''; }, 8000);
+    }
+  });
+}
   setInterval(updateDate, 1000);
   // initial fetch and render
   fetchDashboardData();

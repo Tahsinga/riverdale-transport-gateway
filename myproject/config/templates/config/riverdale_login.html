@@ -1,10 +1,12 @@
 <!DOCTYPE html>
+{% load static %}
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Riverdale Academy — Login</title>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="icon" type="image/png" href="{% static 'img/logo.png' %}">
   <style>
     :root {
       --red:        #c0392b;
@@ -96,13 +98,19 @@
       width: 52px;
       height: 52px;
       border-radius: 12px;
-      background: linear-gradient(135deg, var(--red) 0%, var(--red-dark) 100%);
+      background: #fff;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 24px;
+      padding: 3px;
       box-shadow: 0 4px 20px var(--red-glow);
       flex-shrink: 0;
+    }
+    .logo-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
     }
     .logo-text h1 {
       font-size: 1rem;
@@ -349,7 +357,7 @@
   <div class="card" id="card">
 
     <div class="logo-wrap">
-      <div class="logo-icon">🏫</div>
+      <div class="logo-icon"><img src="{% static 'img/logo.png' %}" alt="Riverdale Academy logo"></div>
       <div class="logo-text">
         <h1>RIVERDALE<br>ACADEMY</h1>
         <span>RFID Payment Hub</span>

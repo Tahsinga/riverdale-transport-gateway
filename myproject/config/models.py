@@ -17,6 +17,7 @@ class Student(models.Model):
 	name = models.CharField(max_length=200)
 	rfid_tag = models.OneToOneField(RFIDTag, on_delete=models.SET_NULL, null=True, blank=True)
 	grade = models.CharField(max_length=128, null=True, blank=True)
+	gender = models.CharField(max_length=32, null=True, blank=True)
 	roll = models.CharField(max_length=64, null=True, blank=True)
 	parent_contact = models.CharField(max_length=128, null=True, blank=True)
 
